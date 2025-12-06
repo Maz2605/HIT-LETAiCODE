@@ -14,8 +14,8 @@ public class PlayerController : MonoBehaviour
     PlayerStateMachine sm;
     Animator anim;
 
-    float inputDir = 0;   // hướng input hiện tại
-    float moveDir = 0;    // hướng của frame trước
+    float inputDir = 0;  
+    float moveDir = 0;   
     bool isDashing;
     float dashTimer;
 
