@@ -1,32 +1,40 @@
+
 using UnityEngine;
 using System.Collections.Generic;
 
 public class ShadowReplayAdvanced : MonoBehaviour
 {
     List<FrameData> frames;
-    int index = 0;
+    int currentIndex = 0;
     float timer = 0f;
-    private float playbackInterval = 0.05f; 
-
-    Rigidbody2D rb;
+    private float playbackInterval = 0.01f;
+    
     /*
-    Animator anim;
+    Rigidbody2D rb;
     */
+    Animator anim;
+    int lastState = -1;
 
     void Awake()
     {
-        rb = GetComponent<Rigidbody2D>();
         /*
-        anim = GetComponentInChildren<Animator>();
+        rb = GetComponent<Rigidbody2D>();
         */
-        rb.simulated = false;
+        anim = GetComponent<Animator>();
     }
 
     public void LoadFrames(List<FrameData> f)
     {
         frames = new List<FrameData>(f);
-        index = 0;
+        currentIndex = 0;
         timer = 0f;
+        lastState = 0;
+        
+        if (frames.Count > 0)
+        {
+            anim.SetInteger("State", frames[0].state);
+            lastState = frames[0].state;
+        }
     }
 
     void Update()
@@ -35,30 +43,45 @@ public class ShadowReplayAdvanced : MonoBehaviour
 
         timer += Time.deltaTime;
         
+        float t = Mathf.Clamp01(timer / playbackInterval);
+        
         if (timer >= playbackInterval)
         {
             timer -= playbackInterval;
-            index++;
-
-            if (index >= frames.Count)
-                index = 0;
-        }
-        if (index < frames.Count - 1)
-        {
-            float t = timer / playbackInterval;
-            Vector3 currentPos = frames[index].pos;
-            Vector3 nextPos = frames[index + 1].pos;
+            currentIndex++;
             
-            transform.position = Vector3.Lerp(currentPos, nextPos, t);
-            
-            /*
-            if (t < 0.5f)
-                anim.Play(frames[index].animState, 0);
+            if (currentIndex >= frames.Count)
+            {
+                currentIndex = 0;
+                /*
+                lastState = -1;
             */
+            }
+        }
+        
+        if (currentIndex < frames.Count - 1)
+        {
+            Vector3 currentPos = frames[currentIndex].pos;
+            Vector3 nextPos = frames[currentIndex + 1].pos;
+            
+            float smoothT = Mathf.SmoothStep(0f, 1f, t);
+            transform.position = Vector3.Lerp(currentPos, nextPos, smoothT);
         }
         else
         {
-            transform.position = frames[index].pos;
+            transform.position = frames[currentIndex].pos;
         }
+        
+        int currentState = frames[currentIndex].state;
+        if (currentState != lastState)
+        {
+            anim.SetInteger("State", currentState);
+            lastState = currentState;
+        }
+        
+        bool facingRight = frames[currentIndex].facingRight;
+        Vector3 scale = transform.localScale;
+        scale.x = facingRight ? Mathf.Abs(scale.x) : -Mathf.Abs(scale.x);
+        transform.localScale = scale;
     }
 }

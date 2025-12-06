@@ -8,10 +8,11 @@ public class PlayerController : MonoBehaviour
     public float dashPower = 12;
     public float dashTime = 0.15f;
     public LayerMask groundLayer;
-    public Transform groundCheck; // Tạo empty GameObject làm con, đặt ở chân player
+    public Transform groundCheck; 
 
     Rigidbody2D rb;
     PlayerStateMachine sm;
+    private Animator anim;
 
     bool isDashing;
     float dashTimer;
@@ -20,6 +21,7 @@ public class PlayerController : MonoBehaviour
     {
         rb = GetComponent<Rigidbody2D>();
         sm = GetComponent<PlayerStateMachine>();
+        anim = GetComponent<Animator>();
     }
 
     void Update()
@@ -44,7 +46,6 @@ public class PlayerController : MonoBehaviour
 
         float h = Input.GetAxisRaw("Horizontal");
 
-        // Dash input
         if (Input.GetKeyDown(KeyCode.LeftControl) && !isDashing)
         {
             if (sm.TryChange(PlayerState.Dash))
@@ -64,7 +65,6 @@ public class PlayerController : MonoBehaviour
             }
         }
 
-        // Movement (air control - hoạt động cả khi nhảy!)
         if (!isDashing)
         {
             if (Mathf.Abs(h) > 0.1f)
@@ -73,7 +73,15 @@ public class PlayerController : MonoBehaviour
                 float spd = running ? runSpeed : walkSpeed;
                 rb.velocity = new Vector2(h * spd, rb.velocity.y);
 
-                // Chỉ update state khi đang ở trên mặt đất
+                if (h > 0)
+                {
+                    transform.localScale = new Vector3(1, transform.localScale.y, transform.localScale.z);
+                }
+                else if (h < 0)
+                {
+                    transform.localScale = new Vector3(-1, transform.localScale.y, transform.localScale.z);
+                }
+
                 if (sm.IsGrounded)
                 {
                     sm.TryChange(running ? PlayerState.Run : PlayerState.Walk);
@@ -85,10 +93,9 @@ public class PlayerController : MonoBehaviour
             }
         }
 
-        // Tự động chuyển về Jump state khi rời mặt đất (rơi xuống)
         if (!sm.IsGrounded && sm.Current != PlayerState.Dash && sm.Current != PlayerState.Jump)
         {
-            sm.Change(PlayerState.Jump); // Falling cũng dùng Jump state
+            sm.Change(PlayerState.Jump);
         }
 
         UpdateAnimation();
@@ -96,9 +103,7 @@ public class PlayerController : MonoBehaviour
 
     void UpdateAnimation()
     {
-        // Animation sẽ dựa vào state và IsGrounded
-        // anim.SetInteger("State", (int)sm.Current);
-        // anim.SetBool("IsGrounded", sm.IsGrounded);
+        anim.SetInteger("State", (int)sm.Current);
     }
     void OnDrawGizmosSelected()
     {
