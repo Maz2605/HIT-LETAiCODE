@@ -43,3 +43,21 @@ TagManager:
   - name: Default
     uniqueID: 0
     locked: 0
+  - name: Upper Decoration
+    uniqueID: 1742353267
+    locked: 0
+  - name: Item
+    uniqueID: 2559296531
+    locked: 0
+  - name: Player
+    uniqueID: 2550747387
+    locked: 0
+  - name: Under Decorations
+    uniqueID: 3626666315
+    locked: 0
+  - name: Ground
+    uniqueID: 1765501749
+    locked: 0
+  - name: Background
+    uniqueID: 2461521729
+    locked: 0
