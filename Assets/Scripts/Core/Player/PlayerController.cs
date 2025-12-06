@@ -8,12 +8,14 @@ public class PlayerController : MonoBehaviour
     public float dashPower = 12;
     public float dashTime = 0.15f;
     public LayerMask groundLayer;
-    public Transform groundCheck; 
+    public Transform groundCheck;
 
     Rigidbody2D rb;
     PlayerStateMachine sm;
-    private Animator anim;
+    Animator anim;
 
+    float inputDir = 0;   // hướng input hiện tại
+    float moveDir = 0;    // hướng của frame trước
     bool isDashing;
     float dashTimer;
 
@@ -28,25 +30,36 @@ public class PlayerController : MonoBehaviour
     {
         if (sm.Current == PlayerState.Die) return;
 
-        Collider2D hit = Physics2D.OverlapCircle(groundCheck.position, 0.1f, groundLayer);
-        sm.IsGrounded = hit != null;
-        // Xử lý Dash
+        CheckGrounded();
+        HandleDash();
+        HandleJump();
+        HandleMovement();
+        HandleAirState();
+        UpdateAnimation();
+    }
+
+    void CheckGrounded()
+    {
+        sm.IsGrounded = Physics2D.OverlapCircle(groundCheck.position, 0.1f, groundLayer);
+    }
+
+    void HandleDash()
+    {
         if (isDashing)
         {
+            rb.velocity = new Vector2(transform.localScale.x * dashPower, 0);
             dashTimer -= Time.deltaTime;
+
             if (dashTimer <= 0)
             {
                 isDashing = false;
+                sm.Change(sm.IsGrounded ? PlayerState.Idle : PlayerState.Fall);
+                rb.velocity = Vector2.zero;
             }
-            else
-            {
-                return; 
-            }
+            return;
         }
 
-        float h = Input.GetAxisRaw("Horizontal");
-
-        if (Input.GetKeyDown(KeyCode.LeftControl) && !isDashing)
+        if (Input.GetKeyDown(KeyCode.LeftControl))
         {
             if (sm.TryChange(PlayerState.Dash))
             {
@@ -55,62 +68,86 @@ public class PlayerController : MonoBehaviour
                 rb.velocity = new Vector2(transform.localScale.x * dashPower, 0);
             }
         }
+    }
 
-        // Jump input
+    void HandleJump()
+    {
         if (Input.GetKeyDown(KeyCode.Space))
         {
             if (sm.TryChange(PlayerState.Jump))
-            {
                 rb.velocity = new Vector2(rb.velocity.x, jumpForce);
-            }
+        }
+    }
+
+    void HandleMovement()
+    {
+        if (isDashing) return;
+
+        inputDir = Input.GetAxisRaw("Horizontal");
+        bool hasInput = Mathf.Abs(inputDir) > 0.1f;
+        bool running = Input.GetKey(KeyCode.LeftShift);
+
+        // ======================
+        // 1) ĐỔI HƯỚNG → TURN
+        // ======================
+        if (sm.IsGrounded &&
+            (sm.Current == PlayerState.Run || sm.Current == PlayerState.Walk) &&
+            hasInput &&
+            moveDir != 0 &&
+            Mathf.Sign(inputDir) != Mathf.Sign(moveDir))
+        {
+            sm.Change(PlayerState.Turn);
+            moveDir = inputDir;
+            return;
         }
 
-        if (!isDashing)
+        // ======================
+        // 2) ĐỨNG LẠI → RUN_TO_IDLE
+        // ======================
+        if (!hasInput)
         {
-            if (Mathf.Abs(h) > 0.1f)
+            if (moveDir != 0)    // vừa thả phím → đang chạy → chạy anim run_to_idle
             {
-                bool running = Input.GetKey(KeyCode.LeftShift);
-                float spd = running ? runSpeed : walkSpeed;
-                rb.velocity = new Vector2(h * spd, rb.velocity.y);
-
-                if (h > 0)
-                {
-                    transform.localScale = new Vector3(1, transform.localScale.y, transform.localScale.z);
-                }
-                else if (h < 0)
-                {
-                    transform.localScale = new Vector3(-1, transform.localScale.y, transform.localScale.z);
-                }
-
-                if (sm.IsGrounded)
-                {
-                    sm.TryChange(running ? PlayerState.Run : PlayerState.Walk);
-                }
+                sm.Change(PlayerState.RunToIdle);
+                moveDir = 0;
+                rb.velocity = new Vector2(Mathf.Lerp(rb.velocity.x, 0, 12f * Time.deltaTime), rb.velocity.y);
+                return;
             }
-            else if (sm.IsGrounded)
-            {
-                sm.TryChange(PlayerState.Idle);
-            }
+
+            // thực sự idle
+            sm.Change(PlayerState.Idle);
+            rb.velocity = new Vector2(0, rb.velocity.y);
+            return;
         }
 
-        if (!sm.IsGrounded && sm.Current != PlayerState.Dash && sm.Current != PlayerState.Jump)
-        {
+        // ======================
+        // 3) DI CHUYỂN BÌNH THƯỜNG
+        // ======================
+        float spd = running ? runSpeed : walkSpeed;
+        rb.velocity = new Vector2(inputDir * spd, rb.velocity.y);
+
+        transform.localScale = new Vector3(inputDir > 0 ? 1 : -1, 1, 1);
+
+        if (sm.IsGrounded)
+            sm.Change(running ? PlayerState.Run : PlayerState.Walk);
+
+        moveDir = inputDir;
+    }
+
+    void HandleAirState()
+    {
+        if (!sm.IsGrounded && sm.Current != PlayerState.Jump && sm.Current != PlayerState.Dash)
             sm.Change(PlayerState.Jump);
-        }
-
-        UpdateAnimation();
     }
 
     void UpdateAnimation()
     {
         anim.SetInteger("State", (int)sm.Current);
     }
+
     void OnDrawGizmosSelected()
     {
-        if (groundCheck == null) return;
-
         Gizmos.color = Color.yellow;
         Gizmos.DrawWireSphere(groundCheck.position, 0.1f);
     }
-
 }
