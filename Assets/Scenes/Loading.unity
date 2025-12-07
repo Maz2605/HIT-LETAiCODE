@@ -935,16 +935,16 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   bgmSource: {fileID: 987675827}
-  bgmClip: {fileID: 0}
+  bgmClip: {fileID: 8300000, guid: 1f2ad53bacc245642854dbdc8ea71a9b, type: 3}
   soundWin: {fileID: 0}
   soundLose: {fileID: 0}
   soundCollectCoin: {fileID: 0}
-  soundClick: {fileID: 0}
-  soundDie: {fileID: 0}
-  soundSkillOn: {fileID: 0}
-  soundSkillOff: {fileID: 0}
-  soundDash: {fileID: 0}
-  soundMove: {fileID: 0}
+  soundClick: {fileID: 8300000, guid: 9d0113dd16699ce4ea3c58dd422fdc1f, type: 3}
+  soundDie: {fileID: 8300000, guid: be39aaab7343b344e81ff139034ecc3c, type: 3}
+  soundSkillOn: {fileID: 8300000, guid: 6450f3cd87324dd45836daf72ec47b3e, type: 3}
+  soundSkillOff: {fileID: 8300000, guid: 12bbc0e1ec14664419f72aa04cf5574c, type: 3}
+  soundDash: {fileID: 8300000, guid: 9384d2d6a3badae4dab9981928f83b41, type: 3}
+  soundMove: {fileID: 8300000, guid: a7bd0bd00337c344a83d9320f36b4646, type: 3}
   sfxSource: {fileID: 987675827}
 --- !u!82 &987675826
 AudioSource:
