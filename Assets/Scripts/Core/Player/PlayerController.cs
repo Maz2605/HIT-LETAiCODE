@@ -8,10 +8,10 @@ public class PlayerController : MonoBehaviour
     public bool IsClone = false;
     public PlayerInputData cloneInput;
     [Header("Run Stop Delay")]
-    public float stopRunDelay = 0.1f;  
+    public float stopRunDelay = 0.1f;
     private float stopRunTimer = 0f;
     private bool wasRunningPrevFrame = false;
-    
+
     private float movementInputDirection;
 
     private int amountOfJumpsLeft;
@@ -97,8 +97,8 @@ public class PlayerController : MonoBehaviour
         HandleRunStopDelay();
         HandleDashTimers();
         HandleAutoFlipAfterWallJump();
-        
-        if(_isDeath) return;
+
+        if (_isDeath) return;
         CheckInput();
         CheckMovementDirection();
         UpdateAnimations();
@@ -109,7 +109,7 @@ public class PlayerController : MonoBehaviour
 
     private void FixedUpdate()
     {
-        if (_isDeath) return;   
+        if (_isDeath) return;
 
         CheckSurroundings();
         ApplyMovement();
@@ -148,13 +148,13 @@ public class PlayerController : MonoBehaviour
     {
         float verticalInput = IsClone ? cloneInput.vertical : Input.GetAxisRaw("Vertical");
 
-        if (isWallSliding && verticalInput < 0 )
+        if (isWallSliding && verticalInput < 0)
         {
             isWallSliding = false;
 
             Vector2 force = new Vector2(
                 -facingDirection * 0.1f,
-                wallHopForce * -Mathf.Abs(wallHopDirection.y)   
+                wallHopForce * -Mathf.Abs(wallHopDirection.y)
             );
 
             rb.AddForce(force, ForceMode2D.Impulse);
@@ -249,7 +249,7 @@ public class PlayerController : MonoBehaviour
     }
     private void Jump()
     {
-        if (isDashing) return; 
+        if (isDashing) return;
 
         if (canJump && !isWallSliding)
         {
@@ -318,7 +318,7 @@ public class PlayerController : MonoBehaviour
         else if (!isFacingRight && movementInputDirection > 0)
             Flip();
 
-        isWalkingOrRunning = rb.velocity.x != 0;
+        isWalkingOrRunning = rb.velocity.x != 0 && movementInputDirection != 0;
     }
 
     private void Flip()

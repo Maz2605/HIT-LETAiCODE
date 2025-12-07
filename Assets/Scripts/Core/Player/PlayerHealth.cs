@@ -6,6 +6,9 @@ public class PlayerHealth : MonoBehaviour
     void OnTriggerEnter2D(Collider2D col)
     {
         if (col.CompareTag("Trap"))
+        {
             playerController.IsDeath = true;
+            Debug.Log("XXXX");
+        }
     }
 }
