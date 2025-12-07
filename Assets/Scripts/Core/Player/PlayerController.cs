@@ -49,9 +49,9 @@ public class PlayerController : MonoBehaviour
 
     public int amountOfJumps = 1;
 
-    public float runSpeed = 5f;
-    public float movementSpeed = 3f;
-    public float jumpForce = 6f;
+    public float runSpeed = 7f;
+    public float movementSpeed = 5f;
+    public float jumpForce = 12f;
     public float groundCheckRadius;
     public float wallCheckDistance;
     public float wallSlideSpeed;
