@@ -6,26 +6,20 @@ public class PlayerHealth : MonoBehaviour
     public GameObject shadowPrefab;
     public Transform respawnPoint;
 
-    PlayerStateMachine sm;
-    ActionRecorderOptimized recorder;
+    InputRecorder recorder;
 
     void Awake()
     {
-        sm = GetComponent<PlayerStateMachine>();
-        recorder = GetComponent<ActionRecorderOptimized>();
+        recorder = GetComponent<InputRecorder>();
     }
 
     public void Kill()
     {
-        sm.Change(PlayerState.Die);
-
-        var shadow = Instantiate(shadowPrefab, transform.position, Quaternion.identity);
-        var replay = shadow.GetComponent<ShadowReplayAdvanced>();
-        replay.LoadFrames(recorder.GetFrames());
+        var shadow = Instantiate(shadowPrefab, respawnPoint.position, Quaternion.identity);
+        var replay = shadow.GetComponent<ShadowReplayInput>();
+        replay.LoadInputs(recorder.GetInputs());
 
         transform.position = respawnPoint.position;
-        sm.Change(PlayerState.Idle);
-
         recorder.Clear();
     }
 
