@@ -45,9 +45,11 @@ GameObject:
   - component: {fileID: 6930914495186317008}
   - component: {fileID: 2050534589174929596}
   - component: {fileID: 7489519922620400458}
+  - component: {fileID: 1599419312216542004}
+  - component: {fileID: 4731155094238575327}
   m_Layer: 6
   m_Name: player
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -133,6 +135,22 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8a4bce46bd4627648acff61cab646a3b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  IsClone: 0
+  cloneInput:
+    horizontal: 0
+    vertical: 0
+    runHeld: 0
+    jumpPressed: 0
+    dashPressed: 0
+  stopRunDelay: 0.1
+  dashSpeed: 8
+  dashDuration: 0.5
+  dashCooldown: 0.4
+  rb: {fileID: 6930914495186317008}
+  anim: {fileID: 7489519922620400458}
+  spriteRenderer: {fileID: 8583029923726869714}
+  _playerHealth: {fileID: 4731155094238575327}
+  _inputRecorder: {fileID: 1599419312216542004}
   amountOfJumps: 1
   runSpeed: 5
   movementSpeed: 3
@@ -142,14 +160,12 @@ MonoBehaviour:
   wallSlideSpeed: 0.5
   movementForceInAir: 10
   airDragMultiplier: 0.95
-  variableJumpHeightMultiplier: 0.5
   wallHopForce: 10
   wallJumpForce: 12
   wallHopDirection: {x: 1, y: 0.5}
   wallJumpDirection: {x: 1, y: 2}
   groundCheck: {fileID: 3544482949528606537}
   wallCheck: {fileID: 4841447068760915351}
-  ledgeCheck: {fileID: 0}
   whatIsGround:
     serializedVersion: 2
     m_Bits: 128
@@ -246,6 +262,34 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &1599419312216542004
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5047644662602213709}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cba51cab49d74664d85c043feed4d93d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  sampleInterval: 0.001
+  shadowPrefab: {fileID: 5718221804641059571, guid: 675d36c59b1204342bdcf716fe076250, type: 3}
+  spawnAtOrigin: 1
+--- !u!114 &4731155094238575327
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5047644662602213709}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 35a2b759b325b6c4d93558b58f1aec7e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  playerController: {fileID: 6821212421186918975}
 --- !u!1 &7333601237118622082
 GameObject:
   m_ObjectHideFlags: 0

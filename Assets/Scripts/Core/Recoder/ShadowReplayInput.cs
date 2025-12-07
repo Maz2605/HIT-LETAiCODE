@@ -6,6 +6,7 @@ public class ShadowReplayInput : MonoBehaviour
     List<PlayerInputData> inputs;
     int index = 0;
     float timer = 0f;
+
     public float interval = 0.01f;
 
     PlayerController controller;
@@ -13,7 +14,7 @@ public class ShadowReplayInput : MonoBehaviour
     void Awake()
     {
         controller = GetComponent<PlayerController>();
-        controller.IsClone = true; // clone
+        controller.IsClone = true;  
     }
 
     public void LoadInputs(List<PlayerInputData> list)
@@ -39,7 +40,9 @@ public class ShadowReplayInput : MonoBehaviour
             }
             else
             {
-                index = 0;
+                enabled = false;
+
+                controller.cloneInput = new PlayerInputData();
             }
         }
     }

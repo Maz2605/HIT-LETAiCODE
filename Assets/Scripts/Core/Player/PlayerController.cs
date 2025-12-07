@@ -11,10 +11,7 @@ public class PlayerController : MonoBehaviour
     public float stopRunDelay = 0.1f;  
     private float stopRunTimer = 0f;
     private bool wasRunningPrevFrame = false;
-    public bool IsRunning
-    {
-        get => isRunning;
-    }
+    
     private float movementInputDirection;
 
     private int amountOfJumpsLeft;
@@ -27,6 +24,24 @@ public class PlayerController : MonoBehaviour
     private bool canJump;
     private bool isWalkingOrRunning;
     private bool isRunning;
+    private bool _isDeath;
+
+    public bool IsDeath
+    {
+        get { return _isDeath; }
+        set
+        {
+            _isDeath = value;
+            if (_isDeath)
+            {
+                rb.velocity = Vector2.zero;
+                rb.angularVelocity = 0f;
+                rb.bodyType = RigidbodyType2D.Kinematic;
+                anim.SetBool("Death", _isDeath);
+                Death();
+            }
+        }
+    }
 
     private bool canFlip = true;
 
@@ -43,10 +58,11 @@ public class PlayerController : MonoBehaviour
     public float dashDuration = 0.15f;
     public float dashCooldown = 0.4f;
 
-    private Rigidbody2D rb;
-    private Animator anim;
-    private SpriteRenderer spriteRenderer;
-
+    [SerializeField] private Rigidbody2D rb;
+    [SerializeField] private Animator anim;
+    [SerializeField] private SpriteRenderer spriteRenderer;
+    [SerializeField] private PlayerHealth _playerHealth;
+    [SerializeField] private InputRecorder _inputRecorder;
     public int amountOfJumps = 1;
 
     public float runSpeed = 7f;
@@ -70,10 +86,6 @@ public class PlayerController : MonoBehaviour
 
     void Start()
     {
-        rb = GetComponent<Rigidbody2D>();
-        anim = GetComponent<Animator>();
-        spriteRenderer = GetComponent<SpriteRenderer>();
-
         amountOfJumpsLeft = amountOfJumps;
 
         wallHopDirection.Normalize();
@@ -85,7 +97,8 @@ public class PlayerController : MonoBehaviour
         HandleRunStopDelay();
         HandleDashTimers();
         HandleAutoFlipAfterWallJump();
-
+        
+        if(_isDeath) return;
         CheckInput();
         CheckMovementDirection();
         UpdateAnimations();
@@ -96,9 +109,40 @@ public class PlayerController : MonoBehaviour
 
     private void FixedUpdate()
     {
+        if (_isDeath) return;   
+
         CheckSurroundings();
         ApplyMovement();
     }
+
+
+    private void Death()
+    {
+        if (IsClone)
+        {
+            CloneManager.Instance.RemoveCloneExact(gameObject);
+        }
+    }
+
+    public void ResetDeath()
+    {
+        if (IsClone)
+        {
+            CloneManager.Instance.DestroyCloneDeath(gameObject);
+        }
+        else
+        {
+            _isDeath = false;
+
+            rb.bodyType = RigidbodyType2D.Dynamic;
+            rb.velocity = Vector2.zero;
+
+            transform.position = _inputRecorder.OriginPos;
+            anim.SetBool("Death", false);
+        }
+    }
+
+
 
     private void HandleWallDrop()
     {
@@ -156,7 +200,7 @@ public class PlayerController : MonoBehaviour
         else
         {
             movementInputDirection = cloneInput.horizontal;
-            isRunning = cloneInput.IsRun;
+            isRunning = cloneInput.runHeld;
             if (cloneInput.jumpPressed)
                 Jump();
 
