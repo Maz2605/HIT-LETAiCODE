@@ -3,187 +3,311 @@ using System.Collections;
 
 public class BossController : MonoBehaviour
 {
-    [Header("--- VISUAL SETUP ---")]
-    [Tooltip("Kéo Object cái Khiên vào đây")]
-    public GameObject shieldObject;
+    public enum BossState { Idle, Patrol, Chase, Attacking, Defending, Dead, Resetting }
 
-    [Tooltip("Kéo Object Điểm Yếu (Lõi ngực) vào đây")]
-    public GameObject coreWeakPoint;
+    [Header("--- TRẠNG THÁI CHUNG ---")]
+    public BossState currentState = BossState.Patrol;
+    public float maxHealth = 500f;
+    private float currentHealth;
+    public bool isChasing = false;
+    private Vector3 startPosition;
 
-    [Tooltip("Kéo Empty GameObject (Vị trí tay trái) vào đây")]
-    public Transform handGrabPoint;
+    [Header("--- ĐI TUẦN & TẦM NHÌN ---")]
+    public Transform pointA;
+    public Transform pointB;
+    public float patrolSpeed = 2f;
+    public float visionRange = 10f;
+    private Transform currentPatrolTarget; 
 
-    [Tooltip("Kéo LineRenderer để làm tia hút vào đây")]
-    public LineRenderer tractorBeam;
+    [Header("--- PHẠM VI TẤN CÔNG (QUAN TRỌNG) ---")]
+    public float meleeRange = 3f;   // Dưới 3m là Đấm
+    public float shootRange = 12f;  // Dưới 12m là Bắn (Trên 12m là Đuổi)
+    public Transform player;
 
-    [Header("--- SETTINGS ---")]
-    public float maxHP = 100f;
-    public float moveSpeed = 3f;
-    public float eatDuration = 4f;    // Thời gian ăn (Cơ hội để Player đánh)
-    public float grabSpeed = 5f;      // Tốc độ hút Clone về tay
-    public float shakeIntensity = 0.2f; // Độ rung lắc khi ăn
+    [Header("--- KỸ NĂNG 1: BẮN XA ---")]
+    public GameObject bulletPrefab;
+    public Transform firePoint;
+    public float bulletSpeed = 10f;
 
-    private float currentHP;
-    private bool isBusy = false;      // Boss đang bận (Ăn hoặc Choáng)
-    private Transform currentPrey;    // Clone đang bị tóm
-    private Transform playerTransform;
+    [Header("--- KỸ NĂNG 2: CẬN CHIẾN ---")]
+    public Transform meleePoint;
+    public float meleeRadius = 1.5f;
+
+    [Header("--- KỸ NĂNG 3: KHIÊN ---")]
+    public GameObject shieldVisual; 
+    public float shieldDuration = 2f; 
+    public float shieldCooldown = 5f; 
+    private float nextShieldTime = 0f;
+
+    // Components
+    private Animator anim;
+    private Rigidbody2D rb;
+    public float chaseSpeed = 4f; 
 
     void Start()
     {
-        currentHP = maxHP;
-
-        // Mặc định: Bật khiên, Tắt điểm yếu, Tắt tia hút
-        ResetBattleState();
-
-        // Tìm Player để đi theo
-        GameObject p = GameObject.FindGameObjectWithTag("Player");
-        if (p != null) playerTransform = p.transform;
+        rb = GetComponent<Rigidbody2D>();
+        anim = GetComponent<Animator>();
+        currentHealth = maxHealth;
+        startPosition = transform.position;
+        currentPatrolTarget = pointA;
+        
+        if (shieldVisual) shieldVisual.SetActive(false);
+        StartCoroutine(RunBossLogic());
     }
 
     void Update()
     {
-        if (isBusy || playerTransform == null) return;
+        if (currentState == BossState.Dead) return;
 
-        // 1. DI CHUYỂN
-        // Chỉ di chuyển theo trục X (Platformer)
-        float step = moveSpeed * Time.deltaTime;
-        float targetX = playerTransform.position.x;
-
-        // Di chuyển tới vị trí X của Player
-        Vector3 targetPos = new Vector3(targetX, transform.position.y, transform.position.z);
-        transform.position = Vector3.MoveTowards(transform.position, targetPos, step);
-
-        // 2. QUAY MẶT (Flip)
-        if (targetX > transform.position.x)
-            transform.localScale = new Vector3(1, 1, 1); // Quay phải
-        else
-            transform.localScale = new Vector3(-1, 1, 1); // Quay trái
-    }
-
-    // --- CƠ CHẾ TỰ ĐỘNG PHÁT HIỆN CLONE ---
-    // Gắn BoxCollider2D (IsTrigger = True) to bao quanh Boss để làm vùng cảm biến
-    private void OnTriggerEnter2D(Collider2D other)
-    {
-        if (isBusy) return;
-
-        if (other.CompareTag("Clone"))
+        if (player != null)
         {
-            StartCoroutine(Routine_GrabAndEat(other.transform));
+            if (isChasing) LookAtTarget(player.position);
+            else if (currentState == BossState.Patrol && currentPatrolTarget != null) 
+                LookAtTarget(currentPatrolTarget.position);
+        }
+        else if (currentState == BossState.Resetting)
+        {
+            LookAtTarget(startPosition);
         }
     }
 
-    // --- LOGIC HÚT & ĂN (Thay thế Animation) ---
-    IEnumerator Routine_GrabAndEat(Transform prey)
+    // =========================================================
+    //               BỘ NÃO BOSS (LOGIC MỚI)
+    // =========================================================
+    IEnumerator RunBossLogic()
     {
-        isBusy = true;
-        currentPrey = prey;
-
-        // Tắt vật lý của Clone để không bị rơi
-        Rigidbody2D preyRb = prey.GetComponent<Rigidbody2D>();
-        if (preyRb) preyRb.isKinematic = true;
-
-        // GIAI ĐOẠN 1: HÚT VỀ TAY (Tractor Beam)
-        tractorBeam.enabled = true;
-        float t = 0;
-        Vector3 startPos = prey.position;
-
-        while (t < 1f)
+        while (currentHealth > 0)
         {
-            t += Time.deltaTime * grabSpeed;
-            // Cập nhật vị trí tia laser
-            tractorBeam.SetPosition(0, handGrabPoint.position);
-            tractorBeam.SetPosition(1, prey.position);
-
-            // Kéo Clone về tay
-            prey.position = Vector3.Lerp(startPos, handGrabPoint.position, t);
-            yield return null;
-        }
-
-        // GIAI ĐOẠN 2: ĐANG ĂN (Mở khóa điểm yếu)
-        prey.SetParent(handGrabPoint); // Gắn chặt vào tay
-        prey.localPosition = Vector3.zero;
-
-        shieldObject.SetActive(false);    // TẮT KHIÊN
-        coreWeakPoint.SetActive(true);    // MỞ ĐIỂM YẾU (Cho phép đánh)
-
-        Debug.Log("<color=red>BOSS: Lớp giáp đã mở! Đánh ngay!</color>");
-
-        float timer = eatDuration;
-        while (timer > 0)
-        {
-            timer -= Time.deltaTime;
-
-            // Hiệu ứng Rung lắc (Clone giãy giụa)
-            if (currentPrey != null)
+            // 1. Nếu Player chết -> Về nhà
+            if (player == null)
             {
-                currentPrey.localPosition = Random.insideUnitCircle * shakeIntensity;
-                // Cập nhật tia laser rung theo
-                tractorBeam.SetPosition(0, handGrabPoint.position);
-                tractorBeam.SetPosition(1, currentPrey.position);
+                yield return StartCoroutine(ReturnToStartAndStop());
+                continue; 
+            }
+
+            // 2. Logic ĐI TUẦN (Khi chưa phát hiện)
+            if (!isChasing)
+            {
+                currentState = BossState.Patrol;
+                if (CanSeePlayer())
+                {
+                    Debug.Log("BOSS: Phát hiện!");
+                    isChasing = true;
+                    if(anim) anim.Play("Idle"); 
+                    yield return new WaitForSeconds(0.5f);
+                }
+                else
+                {
+                    PatrolBehavior();
+                    yield return null;
+                    continue; 
+                }
+            }
+
+            // 3. Logic CHIẾN ĐẤU (Khi đã phát hiện)
+            currentState = BossState.Chase;
+            float distance = Vector2.Distance(transform.position, player.position);
+
+            // --- PHÂN LOẠI KHOẢNG CÁCH RÕ RÀNG ---
+            
+            if (distance <= meleeRange)
+            {
+                // CASE 1: CỰC GẦN -> ĐẤM NGAY
+                yield return StartCoroutine(PerformMeleeAttack());
+            }
+            else if (distance <= shootRange)
+            {
+                // CASE 2: KHOẢNG CÁCH TRUNG BÌNH -> BẮN
+                // (Thêm chút ngẫu nhiên: 70% Bắn, 30% vẫn Đuổi cho áp lực)
+                if (Random.value < 0.7f)
+                {
+                    yield return StartCoroutine(PerformRangedAttack());
+                }
+                else
+                {
+                    yield return StartCoroutine(ChasePlayerBehavior());
+                }
             }
             else
             {
-                // Nếu Clone bị mất giữa chừng (Code khác xóa)
-                break;
+                // CASE 3: QUÁ XA (Ngoài tầm bắn) -> CHỈ ĐUỔI THEO
+                yield return StartCoroutine(ChasePlayerBehavior());
             }
+
+            // Nghỉ nhịp
+            if(anim) anim.Play("Idle");
+            currentState = BossState.Idle;
+            yield return new WaitForSeconds(0.5f);
+        }
+    }
+
+    // =========================================================
+    //               HÀNH VI DI CHUYỂN
+    // =========================================================
+
+    IEnumerator ChasePlayerBehavior()
+    {
+        if(anim) anim.Play("Walk");
+        float timer = 0;
+        
+        // Đuổi cho đến khi vào được tầm MELEE (meleeRange) thì dừng để đánh
+        // Hoặc hết 1.5 giây thì dừng để suy nghĩ tiếp
+        while (timer < 1.5f && player != null && Vector2.Distance(transform.position, player.position) > meleeRange - 0.5f)
+        {
+            Vector2 target = new Vector2(player.position.x, transform.position.y);
+            transform.position = Vector2.MoveTowards(transform.position, target, chaseSpeed * Time.deltaTime);
+            timer += Time.deltaTime;
+            yield return null;
+        }
+    }
+
+    IEnumerator ReturnToStartAndStop()
+    {
+        currentState = BossState.Resetting;
+        isChasing = false; 
+        if(anim) anim.Play("Walk");
+
+        while (Vector2.Distance(transform.position, startPosition) > 0.2f)
+        {
+            if (player != null) yield break; 
+            transform.position = Vector2.MoveTowards(transform.position, startPosition, patrolSpeed * Time.deltaTime);
             yield return null;
         }
 
-        // GIAI ĐOẠN 3: ĂN XONG (Nếu Player không đánh kịp)
-        FinishEating();
+        transform.position = startPosition;
+        currentState = BossState.Idle;
+        if(anim) anim.Play("Idle");
+        while (player == null) yield return null;
     }
 
-    // --- HÀM NHẬN DAMAGE (Player gọi hàm này) ---
+    // =========================================================
+    //               CÁC HÀM TẤN CÔNG & HỖ TRỢ
+    // =========================================================
+    IEnumerator PerformRangedAttack()
+    {
+        currentState = BossState.Attacking;
+        if(anim) anim.Play("Attack_1");
+        yield return new WaitForSeconds(0.5f);
+        if (player != null && bulletPrefab && firePoint)
+        {
+            GameObject bullet = Instantiate(bulletPrefab, firePoint.position, Quaternion.identity);
+            Vector2 dir = (player.position - firePoint.position).normalized;
+            bullet.GetComponent<Rigidbody2D>().velocity = dir * bulletSpeed;
+        }
+        yield return new WaitForSeconds(0.5f); 
+    }
+
+    IEnumerator PerformMeleeAttack()
+    {
+        currentState = BossState.Attacking;
+        if(anim) anim.Play("Attack_3"); 
+        yield return new WaitForSeconds(0.5f); 
+        Collider2D hit = Physics2D.OverlapCircle(meleePoint.position, meleeRadius);
+        if (hit != null && hit.CompareTag("Player"))
+        {
+            hit.GetComponent<PlayerController>().IsDeath = true;
+        }
+        yield return new WaitForSeconds(1f);
+    }
+
+    public void TryBlock()
+    {
+        if (currentState != BossState.Dead && currentState != BossState.Defending && Time.time >= nextShieldTime)
+        {
+            isChasing = true; 
+            StopAllCoroutines(); 
+            StartCoroutine(ActivateShield());
+        }
+    }
+
+    IEnumerator ActivateShield()
+    {
+        currentState = BossState.Defending;
+        nextShieldTime = Time.time + shieldCooldown + shieldDuration;
+        rb.velocity = Vector2.zero;
+        if(anim) anim.Play("Special"); 
+        if (shieldVisual) shieldVisual.SetActive(true);
+        yield return new WaitForSeconds(shieldDuration);
+        if (shieldVisual) shieldVisual.SetActive(false);
+        currentState = BossState.Idle;
+        StartCoroutine(RunBossLogic());
+    }
+
     public void TakeDamage(float amount)
     {
-        // Chỉ nhận damage khi Core đang mở
-        if (!coreWeakPoint.activeSelf) return;
-
-        currentHP -= amount;
-        Debug.Log($"BOSS HP: {currentHP}");
-
-        // HIỆU ỨNG BỊ ĐAU -> NHẢ CLONE RA
-        if (currentPrey != null)
+        if (currentState == BossState.Defending) return;
+        currentHealth -= amount;
+        isChasing = true; 
+        if (currentHealth <= 0) Die();
+        else 
         {
-            // Thả Clone ra
-            currentPrey.SetParent(null);
-            Rigidbody2D rb = currentPrey.GetComponent<Rigidbody2D>();
-            if (rb)
-            {
-                rb.isKinematic = false;
-                rb.AddForce(new Vector2(-transform.localScale.x * 5, 5), ForceMode2D.Impulse); // Bắn văng ra
-            }
-            currentPrey = null;
+             if (currentState == BossState.Patrol || currentState == BossState.Idle)
+                if(anim) anim.Play("Hurt");
         }
+    }
 
-        // Reset lại trạng thái chiến đấu ngay lập tức
+    void Die()
+    {
+        currentState = BossState.Dead;
         StopAllCoroutines();
-        ResetBattleState();
-
-        if (currentHP <= 0) Die();
+        if(anim) anim.Play("Death");
+        GetComponent<Collider2D>().enabled = false;
+        this.enabled = false;
     }
 
-    private void FinishEating()
+    void LookAtTarget(Vector3 targetPos)
     {
-        if (currentPrey != null) Destroy(currentPrey.gameObject); // Nuốt chửng Clone
-        ResetBattleState();
+        if (transform.position.x > targetPos.x) transform.localScale = new Vector3(-1, 1, 1); 
+        else transform.localScale = new Vector3(1, 1, 1); 
     }
 
-    private void ResetBattleState()
+    bool CanSeePlayer()
     {
-        isBusy = false;
-        shieldObject.SetActive(true);     // Bật lại khiên
-        coreWeakPoint.SetActive(false);   // Giấu điểm yếu
-        tractorBeam.enabled = false;      // Tắt tia
-        currentPrey = null;
+        if (player == null) return false;
+        if (Vector2.Distance(transform.position, player.position) > visionRange) return false;
+        Vector2 dirToPlayer = (player.position - transform.position).normalized;
+        if (transform.localScale.x > 0 && dirToPlayer.x > 0) return true; 
+        if (transform.localScale.x < 0 && dirToPlayer.x < 0) return true; 
+        return false;
     }
 
-    private void Die()
+    void PatrolBehavior()
     {
-        Debug.Log("BOSS DEFEATED!");
-        shieldObject.SetActive(false);
-        coreWeakPoint.SetActive(false);
-        // Thêm logic nổ tung/chiến thắng ở đây
-        Destroy(gameObject, 0.5f);
+        if(anim) anim.Play("Walk");
+        if (currentPatrolTarget == null) return; 
+        transform.position = Vector2.MoveTowards(transform.position, currentPatrolTarget.position, patrolSpeed * Time.deltaTime);
+        if (Vector2.Distance(transform.position, currentPatrolTarget.position) < 0.2f)
+        {
+            if (currentPatrolTarget == pointA) currentPatrolTarget = pointB;
+            else currentPatrolTarget = pointA;
+        }
+    }
+
+    void OnDrawGizmosSelected()
+    {
+        // 1. Tầm nhìn (Trắng)
+        Gizmos.color = Color.white;
+        Gizmos.DrawWireSphere(transform.position, visionRange);
+        
+        // 2. Tầm Đấm Melee (Đỏ)
+        Gizmos.color = Color.red;
+        Gizmos.DrawWireSphere(transform.position, meleeRange);
+
+        // 3. Tầm Bắn Shoot (Vàng)
+        Gizmos.color = Color.yellow;
+        Gizmos.DrawWireSphere(transform.position, shootRange);
+
+        // 4. Đường đi tuần
+        if (pointA && pointB) {
+            Gizmos.color = Color.green;
+            Gizmos.DrawLine(pointA.position, pointB.position);
+        }
+        
+        // 5. Vùng sát thương đấm
+        if (meleePoint) {
+            Gizmos.color = new Color(1, 0, 0, 0.5f); // Đỏ mờ
+            Gizmos.DrawWireSphere(meleePoint.position, meleeRadius);
+        }
     }
 }

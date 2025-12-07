@@ -139,10 +139,10 @@ TextureImporter:
       name: Death_0
       rect:
         serializedVersion: 2
-        x: 0
+        x: 12
         y: 0
-        width: 96
-        height: 96
+        width: 31
+        height: 49
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -160,10 +160,10 @@ TextureImporter:
       name: Death_1
       rect:
         serializedVersion: 2
-        x: 96
+        x: 108
         y: 0
-        width: 96
-        height: 96
+        width: 36
+        height: 43
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -181,10 +181,10 @@ TextureImporter:
       name: Death_2
       rect:
         serializedVersion: 2
-        x: 192
+        x: 208
         y: 0
-        width: 96
-        height: 96
+        width: 40
+        height: 37
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -202,10 +202,10 @@ TextureImporter:
       name: Death_3
       rect:
         serializedVersion: 2
-        x: 288
+        x: 306
         y: 0
-        width: 96
-        height: 96
+        width: 33
+        height: 35
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -223,10 +223,10 @@ TextureImporter:
       name: Death_4
       rect:
         serializedVersion: 2
-        x: 384
-        y: 0
-        width: 96
-        height: 96
+        x: 342
+        y: 17
+        width: 4
+        height: 6
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -244,10 +244,10 @@ TextureImporter:
       name: Death_5
       rect:
         serializedVersion: 2
-        x: 480
+        x: 401
         y: 0
-        width: 96
-        height: 96
+        width: 44
+        height: 34
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -257,6 +257,27 @@ TextureImporter:
       bones: []
       spriteID: 858e9f99f7a0bd24db5a6e5187715e91
       internalID: -1736895402
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Death_6
+      rect:
+        serializedVersion: 2
+        x: 500
+        y: 0
+        width: 42
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 703f246cc6679de41a6536d4382fcdf6
+      internalID: -914192671
       vertices: []
       indices: 
       edges: []
@@ -278,6 +299,7 @@ TextureImporter:
       Death_3: -963814006
       Death_4: 2057216588
       Death_5: -1736895402
+      Death_6: -914192671
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
