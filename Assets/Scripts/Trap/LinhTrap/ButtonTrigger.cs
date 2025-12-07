@@ -11,6 +11,9 @@ public class ButtonTrigger : MonoBehaviour
         {
             foreach (GameObject item in items)
             {
+                Animator anim = item.GetComponentInParent<Animator>();
+                if (anim != null)
+                    anim.SetBool("isActive", true);
                 item.SetActive(true);
             }
         }
@@ -19,6 +22,9 @@ public class ButtonTrigger : MonoBehaviour
     {
         foreach (GameObject item in items)
         {
+            Animator anim = item.GetComponentInParent<Animator>();
+            if (anim != null)
+                anim.SetBool("isActive", false);
             item.SetActive(false);
         }
     }

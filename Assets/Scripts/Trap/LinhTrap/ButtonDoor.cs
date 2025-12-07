@@ -8,7 +8,6 @@ public class ButtonDoor : MonoBehaviour
     {
         SetState(isPressed: false);
     }
-
     void OnCollisionEnter2D(Collision2D collision)
     {
         if (collision.gameObject.CompareTag("Player"))
@@ -29,12 +28,15 @@ public class ButtonDoor : MonoBehaviour
     {
         for (int i = 0; i < items.Length; i++)
         {
+            Animator anim = items[i].GetComponentInParent<Animator>();
             if (isPressed)
             {
+                anim.SetBool("isActive", i % 2 != 0);
                 items[i].SetActive(i % 2 != 0);
             }
             else
             {
+                anim.SetBool("isActive", i % 2 == 0);
                 items[i].SetActive(i % 2 == 0);
             }
         }

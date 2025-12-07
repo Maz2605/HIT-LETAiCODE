@@ -9,8 +9,11 @@ public class ButtonOnlyDown : MonoBehaviour
     {
         if (collision.gameObject.CompareTag("Player"))
         {
+
             foreach (GameObject item in items)
             {
+                Animator anim = item.GetComponentInParent<Animator>();
+                anim.SetBool("isActive", false);
                 item.SetActive(false);
             }
         }
