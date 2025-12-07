@@ -94,11 +94,12 @@ public class PlayerController : MonoBehaviour
 
     void Update()
     {
+        if (_isDeath) return;
+        
         HandleRunStopDelay();
         HandleDashTimers();
         HandleAutoFlipAfterWallJump();
 
-        if (_isDeath) return;
         CheckInput();
         CheckMovementDirection();
         UpdateAnimations();
@@ -139,8 +140,14 @@ public class PlayerController : MonoBehaviour
 
             transform.position = _inputRecorder.OriginPos;
             anim.SetBool("Death", false);
+
+            isDashing = false;
+            dashTimer = 0f;
+            dashCooldownTimer = 0f;
+            canFlip = true;
         }
     }
+
 
 
 
@@ -211,6 +218,7 @@ public class PlayerController : MonoBehaviour
 
     private void TryDash()
     {
+        if (!isGrounded) return;           
         if (isDashing) return;
         if (dashCooldownTimer > 0) return;
 
@@ -221,6 +229,8 @@ public class PlayerController : MonoBehaviour
 
         rb.velocity = new Vector2(facingDirection * dashSpeed, 0);
     }
+
+
 
     private void HandleDashTimers()
     {
@@ -336,7 +346,7 @@ public class PlayerController : MonoBehaviour
         if ((isGrounded && rb.velocity.y <= 0) || isWallSliding)
             amountOfJumpsLeft = amountOfJumps;
 
-        canJump = amountOfJumpsLeft > 0;
+        canJump = amountOfJumpsLeft > 0 && (isGrounded || isWallSliding);
     }
 
     private void CheckIfWallSliding()
