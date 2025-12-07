@@ -95,7 +95,7 @@ public class PlayerController : MonoBehaviour
     void Update()
     {
         if (_isDeath) return;
-        
+
         HandleRunStopDelay();
         HandleDashTimers();
         HandleAutoFlipAfterWallJump();
@@ -218,7 +218,7 @@ public class PlayerController : MonoBehaviour
 
     private void TryDash()
     {
-        if (!isGrounded) return;           
+        if (!isGrounded) return;
         if (isDashing) return;
         if (dashCooldownTimer > 0) return;
 
