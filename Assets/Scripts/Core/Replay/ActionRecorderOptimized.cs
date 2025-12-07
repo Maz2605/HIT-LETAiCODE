@@ -36,7 +36,7 @@ public class ActionRecorderOptimized : MonoBehaviour
 
     void Record()
     {
-        int currentState = anim.GetInteger("State");
+        int currentState = 0;
         int stateToRecord = currentState;
         
         if (lastRecordedState == -1)
