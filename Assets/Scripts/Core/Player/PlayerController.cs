@@ -19,9 +19,20 @@ public class PlayerController : MonoBehaviour
 
     private bool canFlip = true;
 
+    // --- WALLJUMP AUTO FLIP ---
     private bool justWallJumped = false;
     private float autoFlipTimer = 0f;
     private float autoFlipDelay = 0.05f;
+
+    // --- DASH ---
+    private bool isDashing = false;
+    private float dashTimer = 0f;
+    private float dashCooldownTimer = 0f;
+
+    [Header("Dash Settings")]
+    public float dashSpeed = 12f;
+    public float dashDuration = 0.15f;
+    public float dashCooldown = 0.4f;
 
     private Rigidbody2D rb;
     private Animator anim;
@@ -46,7 +57,6 @@ public class PlayerController : MonoBehaviour
 
     public Transform groundCheck;
     public Transform wallCheck;
-    public Transform ledgeCheck;
 
     public LayerMask whatIsGround;
 
@@ -64,6 +74,7 @@ public class PlayerController : MonoBehaviour
 
     void Update()
     {
+        HandleDashTimers();
         HandleAutoFlipAfterWallJump();
 
         CheckInput();
@@ -79,27 +90,82 @@ public class PlayerController : MonoBehaviour
         ApplyMovement();
     }
 
-    // ============================================
+    // ============================================================
     // INPUT
-    // ============================================
+    // ============================================================
     private void CheckInput()
     {
+        if (isDashing) return; // khóa input khi dash
+
         movementInputDirection = Input.GetAxisRaw("Horizontal");
 
         if (Input.GetButtonDown("Jump"))
             Jump();
 
-        isRunning = Input.GetKey(KeyCode.LeftShift);
-
         if (Input.GetButtonUp("Jump"))
             rb.velocity = new Vector2(rb.velocity.x, rb.velocity.y * variableJumpHeightMultiplier);
+
+        isRunning = Input.GetKey(KeyCode.LeftShift);
+
+        // Dash
+        if (Input.GetKeyDown(KeyCode.LeftControl))
+            TryDash();
     }
 
-    // ============================================
-    // JUMP / WALLJUMP
-    // ============================================
+    // ============================================================
+    // DASH
+    // ============================================================
+    private void TryDash()
+    {
+        if (isDashing) return;
+        if (dashCooldownTimer > 0) return;
+
+        isDashing = true;
+        dashTimer = dashDuration;
+        dashCooldownTimer = dashCooldown;
+
+        // khóa control
+        canFlip = false;
+
+        // hướng dash dựa vào facingDirection
+        rb.velocity = new Vector2(facingDirection * dashSpeed, 0);
+    }
+
+    private void HandleDashTimers()
+    {
+        if (dashCooldownTimer > 0)
+            dashCooldownTimer -= Time.deltaTime;
+
+        if (!isDashing) return;
+
+        dashTimer -= Time.deltaTime;
+
+        // đang dash → force velocity để không đổi hướng
+        rb.velocity = new Vector2(facingDirection * dashSpeed, 0);
+
+        // nếu đập tường → kết thúc dash ngay & bắt đầu wall slide
+        if (isTouchingWall)
+        {
+            isDashing = false;
+            canFlip = true;
+            justWallJumped = false;
+            return;
+        }
+
+        if (dashTimer <= 0)
+        {
+            isDashing = false;
+            canFlip = true;
+        }
+    }
+
+    // ============================================================
+    // JUMP + WALLJUMP
+    // ============================================================
     private void Jump()
     {
+        if (isDashing) return; // dash thì ko cho nhảy
+
         if (canJump && !isWallSliding)
         {
             rb.velocity = new Vector2(rb.velocity.x, jumpForce);
@@ -107,11 +173,9 @@ public class PlayerController : MonoBehaviour
         }
         else if (isWallSliding && movementInputDirection == 0 && canJump)
         {
-            // WALL HOP
             isWallSliding = false;
             amountOfJumpsLeft--;
 
-            // dùng lực nhảy bật ra
             Vector2 force = new Vector2(
                 wallHopForce * wallHopDirection.x * -facingDirection,
                 wallHopForce * wallHopDirection.y
@@ -119,13 +183,11 @@ public class PlayerController : MonoBehaviour
 
             rb.AddForce(force, ForceMode2D.Impulse);
 
-            // chuẩn bị auto flip
             justWallJumped = true;
             autoFlipTimer = autoFlipDelay;
         }
         else if ((isWallSliding || isTouchingWall) && movementInputDirection != 0 && canJump)
         {
-            // WALL JUMP ĐÚNG HƯỚNG INPUT
             isWallSliding = false;
             amountOfJumpsLeft--;
 
@@ -136,18 +198,18 @@ public class PlayerController : MonoBehaviour
 
             rb.AddForce(force, ForceMode2D.Impulse);
 
-            // chuẩn bị auto flip
             justWallJumped = true;
             autoFlipTimer = autoFlipDelay;
         }
     }
 
-    // ============================================
+    // ============================================================
     // AUTO FLIP SAU WALL JUMP
-    // ============================================
+    // ============================================================
     private void HandleAutoFlipAfterWallJump()
     {
         if (!justWallJumped) return;
+        if (isDashing) return;
 
         autoFlipTimer -= Time.deltaTime;
 
@@ -159,19 +221,19 @@ public class PlayerController : MonoBehaviour
             {
                 facingDirection = newDir;
                 isFacingRight = newDir == 1;
-                transform.rotation = Quaternion.Euler(0, newDir == 1 ? 0 : 180, 0);
+                transform.rotation = Quaternion.Euler(0, isFacingRight ? 0 : 180, 0);
             }
 
             justWallJumped = false;
         }
     }
 
-    // ============================================
-    // MOVEMENT / FLIP
-    // ============================================
+    // ============================================================
+    // MOVEMENT + FLIP
+    // ============================================================
     private void CheckMovementDirection()
     {
-        if (!canFlip || justWallJumped) return;
+        if (!canFlip || justWallJumped || isDashing) return;
 
         if (isFacingRight && movementInputDirection < 0)
             Flip();
@@ -183,20 +245,17 @@ public class PlayerController : MonoBehaviour
 
     private void Flip()
     {
-        if (!canFlip) return;
-        if (isWallSliding) return;
-        if (justWallJumped) return;
+        if (!canFlip || isWallSliding || justWallJumped || isDashing) return;
 
         facingDirection *= -1;
         isFacingRight = !isFacingRight;
 
-        transform.rotation =
-            Quaternion.Euler(0, isFacingRight ? 0 : 180, 0);
+        transform.rotation = Quaternion.Euler(0, isFacingRight ? 0 : 180, 0);
     }
 
-    // ============================================
+    // ============================================================
     // CHECKS
-    // ============================================
+    // ============================================================
     private void CheckIfCanJump()
     {
         if ((isGrounded && rb.velocity.y <= 0) || isWallSliding)
@@ -207,17 +266,15 @@ public class PlayerController : MonoBehaviour
 
     private void CheckIfWallSliding()
     {
-        // nếu vừa wall jump → được phép dính tường ngay khi chạm tường mới
+        if (isDashing) return;
+
         if (justWallJumped)
         {
             isWallSliding = isTouchingWall && rb.velocity.y < 0 && !isGrounded;
             return;
         }
 
-        isWallSliding =
-            isTouchingWall &&
-            !isGrounded &&
-            rb.velocity.y < 0;
+        isWallSliding = isTouchingWall && !isGrounded && rb.velocity.y < 0;
     }
 
     private void CheckSurroundings()
@@ -229,11 +286,13 @@ public class PlayerController : MonoBehaviour
             Physics2D.Raycast(wallCheck.position, transform.right, wallCheckDistance, whatIsGround);
     }
 
-    // ============================================
-    // PHYSICS
-    // ============================================
+    // ============================================================
+    // APPLY MOVEMENT
+    // ============================================================
     private void ApplyMovement()
     {
+        if (isDashing) return; // dash override toàn bộ movement
+
         if (isGrounded)
         {
             rb.velocity = new Vector2(
@@ -257,9 +316,9 @@ public class PlayerController : MonoBehaviour
             rb.velocity = new Vector2(rb.velocity.x, -wallSlideSpeed);
     }
 
-    // ============================================
-    // ANIMATION
-    // ============================================
+    // ============================================================
+    // ANIMATIONS
+    // ============================================================
     private void UpdateAnimations()
     {
         anim.SetFloat("Speed", !isWalkingOrRunning ? 0 : isRunning ? 1.5f : 0.5f);
@@ -267,13 +326,14 @@ public class PlayerController : MonoBehaviour
         anim.SetBool("IsGounded", isGrounded);
         anim.SetFloat("yVelocity", rb.velocity.y);
         anim.SetBool("IsWallSliding", isWallSliding);
+        anim.SetBool("IsDashing", isDashing);
 
         spriteRenderer.flipX = isWallSliding;
     }
 
-    // ============================================
+    // ============================================================
     // GIZMOS
-    // ============================================
+    // ============================================================
     private void OnDrawGizmos()
     {
         if (groundCheck != null)
