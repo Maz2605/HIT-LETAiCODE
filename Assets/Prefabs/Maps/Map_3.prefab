@@ -1418,7 +1418,7 @@ Tilemap:
     second:
       serializedVersion: 2
       m_TileIndex: 18
-      m_TileSpriteIndex: 18
+      m_TileSpriteIndex: 19
       m_TileMatrixIndex: 0
       m_TileColorIndex: 0
       m_TileObjectToInstantiateIndex: 65535
@@ -1635,10 +1635,10 @@ Tilemap:
     m_Data: {fileID: 0}
   - m_RefCount: 0
     m_Data: {fileID: 0}
-  - m_RefCount: 1
-    m_Data: {fileID: 21300000, guid: a500c9f10ab63a440b7e6bc97430e49e, type: 3}
   - m_RefCount: 0
     m_Data: {fileID: 0}
+  - m_RefCount: 1
+    m_Data: {fileID: 21300000, guid: a500c9f10ab63a440b7e6bc97430e49e, type: 3}
   - m_RefCount: 15
     m_Data: {fileID: 21300000, guid: f821ff304f2d5c34a880d913384fb200, type: 3}
   m_TileMatrixArray:
@@ -9817,7 +9817,6 @@ GameObject:
   m_Component:
   - component: {fileID: 4665787399596704794}
   - component: {fileID: 8588600134927980146}
-  - component: {fileID: 4748779714568586639}
   - component: {fileID: 7153665160860542237}
   m_Layer: 0
   m_Name: Main Camera
@@ -9893,14 +9892,6 @@ Camera:
   m_OcclusionCulling: 0
   m_StereoConvergence: 10
   m_StereoSeparation: 0.022
---- !u!81 &4748779714568586639
-AudioListener:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 9083192062207471645}
-  m_Enabled: 1
 --- !u!114 &7153665160860542237
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -10339,7 +10330,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4048885400297480090, guid: 12176ed214c93d14a923d367c168d9bb, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6325773306620655452, guid: 12176ed214c93d14a923d367c168d9bb, type: 3}
       propertyPath: m_LocalPosition.x

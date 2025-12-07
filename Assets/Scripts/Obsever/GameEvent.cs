@@ -2,7 +2,8 @@
 {
     public enum GameEvent
     {
-        EventEnterAnimtionRunToIdle,
-        EventExitAnimation,
+        IsRecoder,
+        IsUseItem,
+        IsRevertItem
     }
 }

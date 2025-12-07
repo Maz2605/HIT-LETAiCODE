@@ -3,8 +3,10 @@ using UnityEngine;
 
 public class GameManager : Singleton<GameManager>
 {
-    [Header("Level Prefabs")] public GameObject[] levelPrefabs;
-
+    [Header("Level Prefabs")] 
+    public GameObject[] levelPrefabs;
+    public float PlayTime { get; private set; }
+    private bool isTiming = false;
     private GameObject currentLevelInstance;
     public int CurrentLevelIndex { get; private set; } = 0;
     public Vector3 CurrentPosLevel { get; set; }
@@ -18,6 +20,11 @@ public class GameManager : Singleton<GameManager>
         KeepAlive(true);
     }
 
+    private void Start()
+    {
+        AudioManager.Instance.PlayBGM(AudioManager.Instance.bgmClip);
+    }
+
     #region LEVEL LOAD
 
     public void LoadLevel(int index)
@@ -27,6 +34,8 @@ public class GameManager : Singleton<GameManager>
             Debug.LogError($"GameManager: Level index {index} invalid!");
             return;
         }
+        PlayTime = 0;
+        isTiming = true;
 
         CurrentLevelIndex = index;
 
@@ -39,9 +48,16 @@ public class GameManager : Singleton<GameManager>
         
         SpawnPlayer(lv.spawnAtOrigin);
         lv.SetUpdateFollow(_currentPlayerPrefab);
+
         Debug.Log($"Loaded Level {index + 1}");
 
         UIManager.Instance.GetUI<UIGamePlay>("UIGamePlay")?.Show();
+    }
+    private void Update()
+    {
+        if (!isTiming) return;
+
+        PlayTime += Time.deltaTime;
     }
 
     public void RestartLevel()
@@ -51,11 +67,15 @@ public class GameManager : Singleton<GameManager>
             if (currentLevelInstance != null)
                 Destroy(currentLevelInstance);
 
+            PlayTime = 0;
+            isTiming = true;
+
             LoadLevel(CurrentLevelIndex);
         });
 
         AnimationTranslate.Instance.EndLoading();
     }
+
 
     public void NextLevel()
     {
@@ -91,12 +111,15 @@ public class GameManager : Singleton<GameManager>
 
     private void SpawnPlayer(Transform pos)
     {
-        if (_currentPlayerPrefab != null) Destroy(_currentPlayerPrefab.gameObject);
+        if (_currentPlayerPrefab != null) 
+            Destroy(_currentPlayerPrefab.gameObject);
 
-        _currentPlayerPrefab = Instantiate(_playerPrefab, pos.position + Vector3.up * 5f, Quaternion.identity);
+        _currentPlayerPrefab = Instantiate(
+            _playerPrefab, 
+            pos.position + Vector3.up * 5f, 
+            Quaternion.identity
+        );
 
-
-        var rec = _currentPlayerPrefab.GetComponent<InputRecorder>();
         ResetCloneManager();
     }
 
@@ -115,8 +138,7 @@ public class GameManager : Singleton<GameManager>
             CloneManager.Instance.ResetAllClones();
     }
 
-
-    #region PAUSE FUNCTIONS (Thêm mới cho UIPause)
+    #region PAUSE FUNCTIONS (Dùng UIPause mới)
 
     public void PauseGame()
     {
@@ -124,29 +146,19 @@ public class GameManager : Singleton<GameManager>
 
         var uiPause = UIManager.Instance.GetUI<UIGame.UIPause>("UIPause");
 
-        uiPause.SetActionContinue(() => { ResumeGame(); });
-
-        uiPause.SetActionRestart(() =>
-        {
-            ResumeGame();
-            RestartLevel();
-        });
-
-        uiPause.SetActionGiveUp(() => { GiveUpLevel(); });
-
-        uiPause.ShowDisplay(true, "LEVEL " + (CurrentLevelIndex + 1));
+        uiPause.ShowDisplay(true, $"LEVEL {CurrentLevelIndex + 1}");
     }
 
     public void ResumeGame()
     {
         Time.timeScale = 1;
+        isTiming = true;
     }
-
 
     public void GiveUpLevel()
     {
         Time.timeScale = 1;
-
+        isTiming = false;
         AnimationTranslate.Instance.StartLoading(() =>
         {
             if (currentLevelInstance != null)
@@ -155,7 +167,10 @@ public class GameManager : Singleton<GameManager>
             UIManager.Instance.GetUI<UIGamePlay>("UIGamePlay")?.Hide();
         });
 
-        AnimationTranslate.Instance.EndLoading(() => { UIManager.Instance.GetUI<LevelSelectUI>("LevelSelectUI")?.Show(); });
+        AnimationTranslate.Instance.EndLoading(() =>
+        {
+            UIManager.Instance.GetUI<LevelSelectUI>("LevelSelectUI")?.Show();
+        });
     }
 
     #endregion
@@ -169,13 +184,14 @@ public class GameManager : Singleton<GameManager>
         return 1;
     }
 
-    public void OnLevelCompleted(float time)
+    public void OnLevelCompleted()
     {
+        isTiming = false;
         int level = CurrentLevelIndex + 1;
-        int stars = CalculateStars(time);
+        int stars = CalculateStars(PlayTime);
 
         LevelSave.SaveLevelStars(level, stars);
-        LevelSave.SaveLevelTime(level, time);
+        LevelSave.SaveLevelTime(level, PlayTime);
         LevelSave.UnlockNextLevel(level);
 
         var resultUI = UIManager.Instance.GetUI<UIResult>("UIResult");
@@ -186,16 +202,25 @@ public class GameManager : Singleton<GameManager>
             {
                 if (currentLevelInstance != null)
                     Destroy(currentLevelInstance);
-
+                if (_currentPlayerPrefab != null)
+                {
+                    Destroy(_currentPlayerPrefab);
+                }
                 UIManager.Instance.GetUI<UIGamePlay>("UIGamePlay")?.Hide();
             });
 
-            AnimationTranslate.Instance.EndLoading(() => { UIManager.Instance.GetUI<LevelSelectUI>("LevelSelectUI")?.Show(); });
+            AnimationTranslate.Instance.EndLoading(() =>
+            {
+                UIManager.Instance.GetUI<LevelSelectUI>("LevelSelectUI")?.Show();
+            });
         });
 
-        resultUI.SetNextAction(() => { NextLevel(); });
+        resultUI.SetNextAction(() =>
+        {
+            NextLevel();
+        });
 
-        resultUI.ShowResult(true, stars, time, $"LEVEL {level}");
+        resultUI.ShowResult(true, stars, PlayTime, $"LEVEL {level}");
     }
 
     public void OnLevelFailed(float time)
@@ -214,7 +239,10 @@ public class GameManager : Singleton<GameManager>
                 UIManager.Instance.GetUI<UIGamePlay>("UIGamePlay")?.Hide();
             });
 
-            AnimationTranslate.Instance.EndLoading(() => { UIManager.Instance.GetUI<LevelSelectUI>("LevelSelectUI")?.Show(); });
+            AnimationTranslate.Instance.EndLoading(() =>
+            {
+                UIManager.Instance.GetUI<LevelSelectUI>("LevelSelectUI")?.Show();
+            });
         });
 
         resultUI.ShowResult(false, 0, time, $"LEVEL {level}");

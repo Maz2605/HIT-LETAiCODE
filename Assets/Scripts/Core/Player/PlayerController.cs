@@ -94,7 +94,7 @@ public class PlayerController : MonoBehaviour
 
     void Update()
     {
-        if (_isDeath) return;
+        if (_isDeath || isWin) return;
         
         HandleRunStopDelay();
         HandleDashTimers();
@@ -110,7 +110,7 @@ public class PlayerController : MonoBehaviour
 
     private void FixedUpdate()
     {
-        if (_isDeath) return;
+        if (_isDeath || isWin) return;
 
         CheckSurroundings();
         ApplyMovement();
@@ -502,5 +502,18 @@ public class PlayerController : MonoBehaviour
         cloneInput = new PlayerInputData();
     }
 
+    private bool isWin = false;
+
+    public void OnWin()
+    {
+        if (isWin || _isDeath) return;
+
+        isWin = true;
+
+        rb.velocity = Vector2.zero;
+        rb.bodyType = RigidbodyType2D.Kinematic;
+
+        GameManager.Instance.OnLevelCompleted();
+    }
 
 }

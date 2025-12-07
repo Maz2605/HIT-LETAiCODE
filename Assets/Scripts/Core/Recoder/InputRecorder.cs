@@ -33,9 +33,14 @@ public class InputRecorder : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.J))
         {
             if (!isRecording)
+            {
                 StartRecord();
+            
+            }
             else
+            {
                 StopAndSpawn();
+            }
         }
 
         if (Input.GetKeyDown(KeyCode.K))
@@ -58,13 +63,11 @@ public class InputRecorder : MonoBehaviour
     {
         if (CloneManager.Instance == null)
         {
-            Debug.LogWarning("No CloneManager in scene — cannot record/spawn clones properly.");
             return;
         }
 
         if (!CloneManager.Instance.CanSpawn())
         {
-            Debug.Log("Max clones reached - cannot start recording.");
             return;
         }
 
@@ -72,7 +75,7 @@ public class InputRecorder : MonoBehaviour
         recorded.Clear();
         sampleTimer = 0f;
         OriginPos = transform.position;
-        Debug.Log("InputRecorder: Start Recording. originPos = " + OriginPos);
+        UIManager.Instance.GetUI<UIGamePlay>("UIGamePlay").BlinkTimeItem(); 
     }
 
     public void StopAndSpawn()
@@ -80,8 +83,7 @@ public class InputRecorder : MonoBehaviour
         if (!isRecording) return;
 
         isRecording = false;
-        Debug.Log("InputRecorder: Stop Recording. Recorded frames = " + recorded.Count);
-
+        UIManager.Instance.GetUI<UIGamePlay>("UIGamePlay").StopBlink(); 
         SpawnClone();
     }
 
@@ -118,7 +120,7 @@ public class InputRecorder : MonoBehaviour
         }
 
         Vector3 spawnPos = spawnAtOrigin ? OriginPos : transform.position;
-
+        
         GameObject shadow = CloneManager.Instance.SpawnClone(spawnPos);
 
         // Ensure component exists
@@ -135,7 +137,9 @@ public class InputRecorder : MonoBehaviour
 
         replay.LoadInputs(recorded);
 
-
+        UIManager.Instance
+            .GetUI<UIGamePlay>("UIGamePlay")
+            .UseTimeItem(CloneManager.Instance.spawnRemaining-1);
         Debug.Log("InputRecorder: Spawned clone at " + spawnPos + " with " + recorded.Count + " frames.");
     }
 

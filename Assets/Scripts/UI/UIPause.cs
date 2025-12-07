@@ -1,4 +1,3 @@
-using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -16,10 +15,6 @@ namespace UIGame
         [Header("Level Info")]
         [SerializeField] private TextMeshProUGUI txtLevel;
 
-        private Action _actionContinue;
-        private Action _actionRestart;
-        private Action _actionGiveUp;
-
         protected override void Awake()
         {
             base.Awake();
@@ -28,13 +23,13 @@ namespace UIGame
 
         private void RegisterButtonListeners()
         {
-            if (btnContinue != null) btnContinue.onClick.AddListener(Continue);
-            if (btnRestart != null) btnRestart.onClick.AddListener(Restart);
-            if (btnGiveUp != null) btnGiveUp.onClick.AddListener(GiveUp);
-            if (btnSetting != null) btnSetting.onClick.AddListener(OpenSetting);
+            btnContinue?.onClick.AddListener(OnContinue);
+            btnRestart?.onClick.AddListener(OnRestart);
+            btnGiveUp?.onClick.AddListener(OnGiveUp);
+            btnSetting?.onClick.AddListener(OnSetting);
         }
 
-        public void ShowDisplay(bool enable, string levelText = "", Action onShow = null, Action onClosed = null)
+        public void ShowDisplay(bool enable, string levelText = "")
         {
             if (enable)
             {
@@ -42,32 +37,42 @@ namespace UIGame
                     txtLevel.text = levelText;
 
                 Time.timeScale = 0;
-                afterShow = onShow;
                 Show();
             }
             else
             {
                 Time.timeScale = 1;
-                Hide(onClosed);
+                Hide();
             }
         }
 
-        #region Set Action
-        public void SetActionContinue(Action action) => _actionContinue = action;
-        public void SetActionRestart(Action action) => _actionRestart = action;
-        public void SetActionGiveUp(Action action) => _actionGiveUp = action;
-        #endregion
+        #region Button Actions — gọi GameManager trực tiếp
 
-        #region Button Methods
-        private void Continue() => ShowDisplay(false, null, _actionContinue);
-        private void Restart() => ShowDisplay(false, null, _actionRestart);
-        private void GiveUp() => ShowDisplay(false, null, _actionGiveUp);
+        private void OnContinue()
+        {
+            ShowDisplay(false);
+            GameManager.Instance.ResumeGame();
+        }
 
-        private void OpenSetting()
+        private void OnRestart()
+        {
+            ShowDisplay(false);
+            GameManager.Instance.ResumeGame();
+            GameManager.Instance.RestartLevel();
+        }
+
+        private void OnGiveUp()
+        {
+            ShowDisplay(false);
+            GameManager.Instance.GiveUpLevel();
+        }
+
+        private void OnSetting()
         {
             ShowDisplay(false);
             UIManager.Instance.ShowSetting(true);
         }
+
         #endregion
     }
 }

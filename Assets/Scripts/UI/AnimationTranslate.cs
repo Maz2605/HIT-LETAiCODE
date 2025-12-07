@@ -47,7 +47,7 @@ public class AnimationTranslate : Singleton<AnimationTranslate>
 
             seq.Append(
                 spriteMask.transform.DOScale(20f, duration)
-                .SetEase(Ease.InBack)
+                    .SetEase(Ease.InBack)
             );
 
             seq.OnComplete(() =>
@@ -80,7 +80,6 @@ public class AnimationTranslate : Singleton<AnimationTranslate>
     }
 
 
-
     public void StartLoading(Action onLoading = null)
     {
         DisplayLoading(true);
@@ -90,7 +89,7 @@ public class AnimationTranslate : Singleton<AnimationTranslate>
 
     public void EndLoading(Action onClosed = null)
     {
-        DOVirtual.DelayedCall(0.1f, () =>
+        DOVirtual.DelayedCall(duration + 0.2f, () =>
         {
             DisplayLoading(false, () =>
             {
