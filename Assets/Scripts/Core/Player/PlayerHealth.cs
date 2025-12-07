@@ -8,7 +8,6 @@ public class PlayerHealth : MonoBehaviour
         if (col.CompareTag("Trap"))
         {
             playerController.IsDeath = true;
-            Debug.Log("XXXX");
         }
     }
 }

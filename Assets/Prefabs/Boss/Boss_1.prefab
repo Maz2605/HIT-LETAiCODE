@@ -56,7 +56,7 @@ Transform:
   m_GameObject: {fileID: 302519825635681199}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 5.38, y: 0, z: 0}
+  m_LocalPosition: {x: 17.23, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -198,7 +198,7 @@ Transform:
   m_GameObject: {fileID: 6414780045595422330}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -5.38, y: 0, z: 0}
+  m_LocalPosition: {x: -18.22, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -388,14 +388,14 @@ MonoBehaviour:
   pointB: {fileID: 8012558713320925699}
   patrolSpeed: 3
   visionRange: 10
-  meleeRange: 3
+  meleeRange: 1.92
   shootRange: 8.73
   player: {fileID: 0}
-  bulletPrefab: {fileID: 2368538544761166048, guid: 8f136ae8ef3bd5d428312c75acb1fc89, type: 3}
+  bulletPrefab: {fileID: 2368538544761166048, guid: fb2cc88c1997fa4449ca6de6e750ebdc, type: 3}
   firePoint: {fileID: 4262300707978749233}
   bulletSpeed: 12.44
   meleePoint: {fileID: 4426671502087684832}
-  meleeRadius: 1.5
+  meleeRadius: 1.83
   shieldVisual: {fileID: 2126296190367358699}
   shieldDuration: 2
   shieldCooldown: 5
