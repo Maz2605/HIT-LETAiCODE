@@ -49,14 +49,17 @@ TagManager:
   - name: Ground
     uniqueID: 1765501749
     locked: 0
+  - name: Trap
+    uniqueID: 2559296531
+    locked: 0
+  - name: Hidden Ground
+    uniqueID: 688940207
+    locked: 0
   - name: Under Decorations
     uniqueID: 3626666315
     locked: 0
   - name: Player
     uniqueID: 2550747387
-    locked: 0
-  - name: Item
-    uniqueID: 2559296531
     locked: 0
   - name: Upper Decoration
     uniqueID: 1742353267
