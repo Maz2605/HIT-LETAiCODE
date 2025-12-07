@@ -1,74 +1,117 @@
 using System.Collections.Generic;
-using UnityEngine;
 using TMPro;
+using UnityEngine;
+using UnityEngine.UI;
 
 public class LevelInfoPopup : BaseUI
 {
+    [Header("UI Elements")]
     public TextMeshProUGUI levelTitle;
     public TextMeshProUGUI playTimeText;
     public List<GameObject> _stars;
 
-    public bool IsShowing => isShowing;
-    bool isShowing = false;
+    [Header("Play Button")]
+    public Button playButton;
+    public Image playButtonImage;
+    public Sprite spriteUnlocked;
+    public Sprite spriteLocked;
 
-    void Start()
+    private int _currentLevelIndex;
+    private bool _isShowing = false;
+
+    public bool IsShowing => _isShowing;
+
+    private void Start()
     {
-        gameObject.SetActive(false);
+        if (playButton != null)
+            playButton.onClick.AddListener(OnPlayClicked);
     }
-
     public void ShowInfo(int levelIndex)
     {
+        _currentLevelIndex = levelIndex;
+
         afterShow = () =>
         {
-            bool unlocked = LevelSave.IsLevelUnlocked(levelIndex);
+            bool unlocked = LevelSave.IsLevelUnlocked(_currentLevelIndex);
 
-            levelTitle.text = "LEVEL " + levelIndex;
+            if (levelTitle != null)
+                levelTitle.text = "LEVEL " + _currentLevelIndex;
 
-            foreach (var s in _stars) s.SetActive(false);
+            foreach (var s in _stars)
+                s.SetActive(false);
 
-            if (!unlocked)
+            if (unlocked)
             {
-                playTimeText.text = "--:--";
-            }
-            else
-            {
-                float time = LevelSave.LoadLevelTime(levelIndex);
-                int stars = LevelSave.LoadLevelStars(levelIndex);
+                float time = LevelSave.LoadLevelTime(_currentLevelIndex);
+                int stars = LevelSave.LoadLevelStars(_currentLevelIndex);
 
                 playTimeText.text = (time <= 0) ? "--:--" : $"{time:0.00}";
-                foreach (var s in _stars)
-                {
-                    s.SetActive(false);
-                }
+
                 for (int i = 0; i < stars && i < _stars.Count; i++)
                     _stars[i].SetActive(true);
             }
+            else
+            {
+                playTimeText.text = "--:--";
+            }
+
+            UpdatePlayButton(unlocked);
         };
-        if (isShowing)
+
+        if (_isShowing)
         {
             Hide(() =>
             {
-                afterShow?.Invoke();
                 Show();
-                isShowing = true;
+                _isShowing = true;
             });
         }
         else
         {
             Show();
-            isShowing = true;
+            _isShowing = true;
         }
     }
 
-    public override void Hide()
+    private void UpdatePlayButton(bool unlocked)
+    {
+        if (playButton == null || playButtonImage == null)
+            return;
+
+        playButton.interactable = unlocked;
+        playButtonImage.sprite = unlocked ? spriteUnlocked : spriteLocked;
+    }
+
+    private void OnPlayClicked()
+    {
+        if (!LevelSave.IsLevelUnlocked(_currentLevelIndex))
+            return;
+
+        Hide();
+
+        AnimationTranslate.Instance.StartLoading(() =>
+        {
+            GameManager.Instance.LoadLevel(_currentLevelIndex - 1); 
+        });
+
+        AnimationTranslate.Instance.EndLoading();
+    }
+
+    public override void Show()
+    {
+        base.Show();
+        _isShowing = true;
+    }
+
+    public void Hide()
     {
         base.Hide();
-        isShowing = false;
+        _isShowing = false;
     }
 
     public override void Hide(System.Action afterHide)
     {
         base.Hide(afterHide);
-        isShowing = false;
+        _isShowing = false;
     }
 }

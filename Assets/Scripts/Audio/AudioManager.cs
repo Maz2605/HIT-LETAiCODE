@@ -21,31 +21,25 @@ public class AudioManager : Singleton<AudioManager>
     public AudioClip soundDash;
     public AudioClip soundMove;  // chạy loop
 
-    private AudioSource sfxSource;
-    private AudioSource movementSource;   // riêng cho movement sound loop
+    [SerializeField] private AudioSource sfxSource;
+    private AudioSource movementSource;   
 
     protected override void Awake()
     {
+        base.KeepAlive(true);
         base.Awake();
 
-        // Create SFX source
-        sfxSource = gameObject.AddComponent<AudioSource>();
-        sfxSource.playOnAwake = false;
 
-        // Movement source (loop)
         movementSource = gameObject.AddComponent<AudioSource>();
         movementSource.loop = true;
         movementSource.playOnAwake = false;
 
-        // Load volume
         float volume = SaveSystem.LoadFloat("VolumnSound", 1f);
 
-        // Apply volume
         bgmSource.volume = volume;
         sfxSource.volume = volume;
-        movementSource.volume = volume * 0.7f; // movement thường nhỏ hơn
+        movementSource.volume = volume * 0.7f; 
 
-        // Apply ON/OFF setting
         bgmSource.mute = !SettingData.Music;
         sfxSource.mute = !SettingData.Sound;
         movementSource.mute = !SettingData.Sound;
@@ -53,7 +47,7 @@ public class AudioManager : Singleton<AudioManager>
 
     private void Start()
     {
-        PlayBGM(bgmClip);
+        /*PlayBGM(bgmClip);*/
     }
 
     // =============================
