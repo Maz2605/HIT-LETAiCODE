@@ -4,6 +4,17 @@ using UnityEngine;
 
 public class PlayerController : MonoBehaviour
 {
+    [Header("Clone Setting")]
+    public bool IsClone = false;
+    public PlayerInputData cloneInput;
+    [Header("Run Stop Delay")]
+    public float stopRunDelay = 0.1f;  
+    private float stopRunTimer = 0f;
+    private bool wasRunningPrevFrame = false;
+    public bool IsRunning
+    {
+        get => isRunning;
+    }
     private float movementInputDirection;
 
     private int amountOfJumpsLeft;
@@ -19,12 +30,10 @@ public class PlayerController : MonoBehaviour
 
     private bool canFlip = true;
 
-    // --- WALLJUMP AUTO FLIP ---
     private bool justWallJumped = false;
     private float autoFlipTimer = 0f;
     private float autoFlipDelay = 0.05f;
 
-    // --- DASH ---
     private bool isDashing = false;
     private float dashTimer = 0f;
     private float dashCooldownTimer = 0f;
@@ -48,7 +57,6 @@ public class PlayerController : MonoBehaviour
     public float wallSlideSpeed;
     public float movementForceInAir;
     public float airDragMultiplier = 0.95f;
-    public float variableJumpHeightMultiplier = 0.5f;
     public float wallHopForce;
     public float wallJumpForce;
 
@@ -74,6 +82,7 @@ public class PlayerController : MonoBehaviour
 
     void Update()
     {
+        HandleRunStopDelay();
         HandleDashTimers();
         HandleAutoFlipAfterWallJump();
 
@@ -81,6 +90,7 @@ public class PlayerController : MonoBehaviour
         CheckMovementDirection();
         UpdateAnimations();
         CheckIfCanJump();
+        HandleWallDrop();
         CheckIfWallSliding();
     }
 
@@ -90,31 +100,71 @@ public class PlayerController : MonoBehaviour
         ApplyMovement();
     }
 
-    // ============================================================
-    // INPUT
-    // ============================================================
-    private void CheckInput()
+    private void HandleWallDrop()
     {
-        if (isDashing) return; // khóa input khi dash
+        float verticalInput = IsClone ? cloneInput.vertical : Input.GetAxisRaw("Vertical");
 
-        movementInputDirection = Input.GetAxisRaw("Horizontal");
+        if (isWallSliding && verticalInput < 0 )
+        {
+            isWallSliding = false;
 
-        if (Input.GetButtonDown("Jump"))
-            Jump();
+            Vector2 force = new Vector2(
+                -facingDirection * 0.1f,
+                wallHopForce * -Mathf.Abs(wallHopDirection.y)   
+            );
 
-        if (Input.GetButtonUp("Jump"))
-            rb.velocity = new Vector2(rb.velocity.x, rb.velocity.y * variableJumpHeightMultiplier);
+            rb.AddForce(force, ForceMode2D.Impulse);
 
-        isRunning = Input.GetKey(KeyCode.LeftShift);
 
-        // Dash
-        if (Input.GetKeyDown(KeyCode.LeftControl))
-            TryDash();
+            justWallJumped = false;
+        }
     }
 
-    // ============================================================
-    // DASH
-    // ============================================================
+
+
+    private void HandleRunStopDelay()
+    {
+        bool isCurrentlyMoving = Mathf.Abs(movementInputDirection) > 0.1f;
+
+        if (wasRunningPrevFrame && !isRunning && isCurrentlyMoving)
+        {
+            stopRunTimer = stopRunDelay;
+        }
+
+        if (stopRunTimer > 0)
+            stopRunTimer -= Time.deltaTime;
+
+        wasRunningPrevFrame = isRunning;
+    }
+
+
+
+    private void CheckInput()
+    {
+        if (isDashing) return;
+
+        if (!IsClone)
+        {
+            movementInputDirection = Input.GetAxisRaw("Horizontal");
+            isRunning = Input.GetKey(KeyCode.LeftShift);
+            if (Input.GetButtonDown("Jump"))
+                Jump();
+
+            if (Input.GetKeyDown(KeyCode.LeftControl))
+                TryDash();
+        }
+        else
+        {
+            movementInputDirection = cloneInput.horizontal;
+            isRunning = cloneInput.IsRun;
+            if (cloneInput.jumpPressed)
+                Jump();
+
+            if (cloneInput.dashPressed)
+                TryDash();
+        }
+    }
+
     private void TryDash()
     {
         if (isDashing) return;
@@ -123,11 +173,8 @@ public class PlayerController : MonoBehaviour
         isDashing = true;
         dashTimer = dashDuration;
         dashCooldownTimer = dashCooldown;
-
-        // khóa control
         canFlip = false;
 
-        // hướng dash dựa vào facingDirection
         rb.velocity = new Vector2(facingDirection * dashSpeed, 0);
     }
 
@@ -140,10 +187,8 @@ public class PlayerController : MonoBehaviour
 
         dashTimer -= Time.deltaTime;
 
-        // đang dash → force velocity để không đổi hướng
         rb.velocity = new Vector2(facingDirection * dashSpeed, 0);
 
-        // nếu đập tường → kết thúc dash ngay & bắt đầu wall slide
         if (isTouchingWall)
         {
             isDashing = false;
@@ -158,13 +203,9 @@ public class PlayerController : MonoBehaviour
             canFlip = true;
         }
     }
-
-    // ============================================================
-    // JUMP + WALLJUMP
-    // ============================================================
     private void Jump()
     {
-        if (isDashing) return; // dash thì ko cho nhảy
+        if (isDashing) return; 
 
         if (canJump && !isWallSliding)
         {
@@ -202,10 +243,6 @@ public class PlayerController : MonoBehaviour
             autoFlipTimer = autoFlipDelay;
         }
     }
-
-    // ============================================================
-    // AUTO FLIP SAU WALL JUMP
-    // ============================================================
     private void HandleAutoFlipAfterWallJump()
     {
         if (!justWallJumped) return;
@@ -228,9 +265,6 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    // ============================================================
-    // MOVEMENT + FLIP
-    // ============================================================
     private void CheckMovementDirection()
     {
         if (!canFlip || justWallJumped || isDashing) return;
@@ -253,9 +287,6 @@ public class PlayerController : MonoBehaviour
         transform.rotation = Quaternion.Euler(0, isFacingRight ? 0 : 180, 0);
     }
 
-    // ============================================================
-    // CHECKS
-    // ============================================================
     private void CheckIfCanJump()
     {
         if ((isGrounded && rb.velocity.y <= 0) || isWallSliding)
@@ -295,11 +326,23 @@ public class PlayerController : MonoBehaviour
 
         if (isGrounded)
         {
+            float targetSpeed;
+
+            if (stopRunTimer > 0)
+            {
+                targetSpeed = runSpeed;
+            }
+            else
+            {
+                targetSpeed = (isRunning ? runSpeed : movementSpeed);
+            }
+
             rb.velocity = new Vector2(
-                (isRunning ? runSpeed : movementSpeed) * movementInputDirection,
+                targetSpeed * movementInputDirection,
                 rb.velocity.y
             );
         }
+
         else if (!isWallSliding && movementInputDirection != 0)
         {
             rb.AddForce(new Vector2(movementForceInAir * movementInputDirection, 0));
