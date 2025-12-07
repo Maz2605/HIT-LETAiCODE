@@ -22,7 +22,9 @@ public class AudioManager : Singleton<AudioManager>
     public AudioClip soundMove;  // chạy loop
 
     [SerializeField] private AudioSource sfxSource;
+    /*
     private AudioSource movementSource;   
+    */
 
     protected override void Awake()
     {
@@ -30,19 +32,25 @@ public class AudioManager : Singleton<AudioManager>
         base.Awake();
 
 
+        /*
         movementSource = gameObject.AddComponent<AudioSource>();
         movementSource.loop = true;
         movementSource.playOnAwake = false;
+        */
 
         float volume = SaveSystem.LoadFloat("VolumnSound", 1f);
 
         bgmSource.volume = volume;
         sfxSource.volume = volume;
+        /*
         movementSource.volume = volume * 0.7f; 
+        */
 
         bgmSource.mute = !SettingData.Music;
         sfxSource.mute = !SettingData.Sound;
+        /*
         movementSource.mute = !SettingData.Sound;
+    */
     }
 
     private void Start()
@@ -125,7 +133,7 @@ public class AudioManager : Singleton<AudioManager>
     // =============================
     // MOVEMENT SOUND (loop)
     // =============================
-    public void PlayMovement(bool isMoving)
+    /*public void PlayMovement(bool isMoving)
     {
         if (soundMove == null) return;
 
@@ -142,7 +150,7 @@ public class AudioManager : Singleton<AudioManager>
             if (movementSource.isPlaying)
                 movementSource.Stop();
         }
-    }
+    }*/
 
 
     public void SetValue(float value)
@@ -151,10 +159,12 @@ public class AudioManager : Singleton<AudioManager>
 
         bgmSource.volume = value;
         sfxSource.volume = value;
+        /*
         movementSource.volume = value * 0.7f;
+    */
     }
 
-    public void SetMusic(bool on)
+    /*public void SetMusic(bool on)
     {
         SettingData.Music = on;
         bgmSource.mute = !on;
@@ -165,5 +175,5 @@ public class AudioManager : Singleton<AudioManager>
         SettingData.Sound = on;
         sfxSource.mute = !on;
         movementSource.mute = !on;
-    }
+    }*/
 }

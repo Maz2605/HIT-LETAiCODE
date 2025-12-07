@@ -9,13 +9,13 @@ public class BaseUIInstant : BaseUI
 
     public override void Show()
     {
-        gameObject.SetActive(true);
+        rect.gameObject.SetActive(true);
         afterShow?.Invoke();
     }
 
     public override void Hide(Action afterHide = null)
     {
-        gameObject.SetActive(false);
+        rect.gameObject.SetActive(false);
         afterHide?.Invoke();
     }
 }

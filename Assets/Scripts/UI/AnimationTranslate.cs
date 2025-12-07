@@ -36,7 +36,7 @@ public class AnimationTranslate : Singleton<AnimationTranslate>
             Sequence seq = DOTween.Sequence();
 
             seq.Append(
-                smile.transform.DOScale(8f, duration).SetEase(Ease.OutBack)
+                smile.transform.DOScale(20f, duration).SetEase(Ease.OutBack)
             );
 
             currentTween = seq;
@@ -46,7 +46,7 @@ public class AnimationTranslate : Singleton<AnimationTranslate>
             Sequence seq = DOTween.Sequence();
 
             seq.Append(
-                spriteMask.transform.DOScale(8f, duration)
+                spriteMask.transform.DOScale(20f, duration)
                 .SetEase(Ease.InBack)
             );
 

@@ -10,12 +10,13 @@ public class UIGamePlay : BaseUI
 
     public override void Show()
     {
-        gameObject.SetActive(true);
+        rect.gameObject.SetActive(true);
+        UIManager.Instance.GetUI<LevelSelectUI>("LevelSelectUI")?.Hide();
     }
 
     public override void Hide(System.Action onComplete = null)
     {
-        gameObject.SetActive(false);
+        rect.gameObject.SetActive(false);
         onComplete?.Invoke();
     }
 }

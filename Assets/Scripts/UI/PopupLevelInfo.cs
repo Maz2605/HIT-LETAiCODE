@@ -92,6 +92,7 @@ public class LevelInfoPopup : BaseUI
         AnimationTranslate.Instance.StartLoading(() =>
         {
             GameManager.Instance.LoadLevel(_currentLevelIndex - 1); 
+            Debug.LogError("XXX");
         });
 
         AnimationTranslate.Instance.EndLoading();

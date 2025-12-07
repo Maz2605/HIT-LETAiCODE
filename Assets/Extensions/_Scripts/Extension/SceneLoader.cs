@@ -19,7 +19,7 @@ namespace _Scripts.Extension
 
         private string sceneName
         {
-            get => PlayerPrefs.GetString("sceneName", "GamePlay");
+            get => PlayerPrefs.GetString("sceneName", "Gameplay");
             set => PlayerPrefs.SetString("sceneName", value);
         }
 
