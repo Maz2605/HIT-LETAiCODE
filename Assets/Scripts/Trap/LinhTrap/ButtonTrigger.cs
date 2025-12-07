@@ -13,8 +13,8 @@ public class ButtonTrigger : MonoBehaviour
             {
                 Animator anim = item.GetComponentInParent<Animator>();
                 if (anim != null)
-                    anim.SetBool("isActive", true);
-                item.SetActive(true);
+                    anim.SetBool("isActive", false);
+                item.SetActive(false);
             }
         }
     }
@@ -24,8 +24,8 @@ public class ButtonTrigger : MonoBehaviour
         {
             Animator anim = item.GetComponentInParent<Animator>();
             if (anim != null)
-                anim.SetBool("isActive", false);
-            item.SetActive(false);
+                anim.SetBool("isActive", true);
+            item.SetActive(true);
         }
     }
 }

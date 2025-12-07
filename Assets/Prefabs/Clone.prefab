@@ -64,9 +64,21 @@ PrefabInstance:
       propertyPath: dashDuration
       value: 0.5
       objectReference: {fileID: 0}
+    - target: {fileID: 6821212421186918975, guid: 5634370eb453b7044b686283c4096188, type: 3}
+      propertyPath: _inputRecorder
+      value: 
+      objectReference: {fileID: 0}
     - target: {fileID: 8583029923726869714, guid: 5634370eb453b7044b686283c4096188, type: 3}
       propertyPath: m_Color.a
       value: 0.39607844
+      objectReference: {fileID: 0}
+    - target: {fileID: 8583029923726869714, guid: 5634370eb453b7044b686283c4096188, type: 3}
+      propertyPath: m_SortingLayer
+      value: 6
+      objectReference: {fileID: 0}
+    - target: {fileID: 8583029923726869714, guid: 5634370eb453b7044b686283c4096188, type: 3}
+      propertyPath: m_SortingLayerID
+      value: -1744219909
       objectReference: {fileID: 0}
     - target: {fileID: 8583029923726869714, guid: 5634370eb453b7044b686283c4096188, type: 3}
       propertyPath: m_Materials.Array.data[0]

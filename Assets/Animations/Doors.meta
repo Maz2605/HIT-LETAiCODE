@@ -1,5 +1,9 @@
 fileFormatVersion: 2
+<<<<<<<< HEAD:Assets/Teleport.meta
+guid: 844e37e3176c01e45932ce63003dd2cd
+========
 guid: 3409ec6fbe7ef2741b12e3748842590f
+>>>>>>>> 0de3005439572a412e2c529569ead3f495e698a0:Assets/Animations/Doors.meta
 folderAsset: yes
 DefaultImporter:
   externalObjects: {}
