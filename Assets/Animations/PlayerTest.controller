@@ -24,7 +24,7 @@ AnimatorStateTransition:
   m_HasFixedDuration: 1
   m_InterruptionSource: 0
   m_OrderedInterruption: 1
-  m_CanTransitionToSelf: 1
+  m_CanTransitionToSelf: 0
 --- !u!1102 &-8468141398602183362
 AnimatorState:
   serializedVersion: 6
@@ -188,6 +188,9 @@ AnimatorStateTransition:
   - m_ConditionMode: 1
     m_ConditionEvent: WallJump
     m_EventTreshold: 0
+  - m_ConditionMode: 2
+    m_ConditionEvent: Death
+    m_EventTreshold: 0
   m_DstStateMachine: {fileID: 0}
   m_DstState: {fileID: 6349313852920443433}
   m_Solo: 0
@@ -221,6 +224,9 @@ AnimatorStateTransition:
     m_EventTreshold: 0
   - m_ConditionMode: 2
     m_ConditionEvent: IsDashing
+    m_EventTreshold: 0
+  - m_ConditionMode: 2
+    m_ConditionEvent: Death
     m_EventTreshold: 0
   m_DstStateMachine: {fileID: 0}
   m_DstState: {fileID: 6924090571310144649}
@@ -274,7 +280,7 @@ AnimatorStateTransition:
   m_Conditions:
   - m_ConditionMode: 3
     m_ConditionEvent: Speed
-    m_EventTreshold: 0.1
+    m_EventTreshold: 0.2
   - m_ConditionMode: 1
     m_ConditionEvent: IsWalkOrRun
     m_EventTreshold: 0
@@ -506,6 +512,9 @@ AnimatorStateTransition:
   - m_ConditionMode: 1
     m_ConditionEvent: IsDashing
     m_EventTreshold: 0
+  - m_ConditionMode: 2
+    m_ConditionEvent: Death
+    m_EventTreshold: 0
   m_DstStateMachine: {fileID: 0}
   m_DstState: {fileID: 1973401129569479736}
   m_Solo: 0
@@ -583,6 +592,9 @@ AnimatorStateTransition:
   m_Conditions:
   - m_ConditionMode: 1
     m_ConditionEvent: IsWallSliding
+    m_EventTreshold: 0
+  - m_ConditionMode: 2
+    m_ConditionEvent: Death
     m_EventTreshold: 0
   m_DstStateMachine: {fileID: 0}
   m_DstState: {fileID: -8468141398602183362}
@@ -956,7 +968,7 @@ AnimatorStateMachine:
     m_Position: {x: -740, y: 0, z: 0}
   - serializedVersion: 1
     m_State: {fileID: 3139887913560283213}
-    m_Position: {x: -300, y: 90, z: 0}
+    m_Position: {x: -240, y: 50, z: 0}
   - serializedVersion: 1
     m_State: {fileID: -5397510814133651346}
     m_Position: {x: -280, y: 160, z: 0}

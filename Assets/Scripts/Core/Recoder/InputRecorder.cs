@@ -22,6 +22,7 @@ public class InputRecorder : MonoBehaviour
     void Awake()
     {
         controller = GetComponent<PlayerController>();
+        OriginPos = transform.position;
         if (controller == null)
             Debug.LogError("InputRecorder requires a PlayerController on the same GameObject.");
     }
