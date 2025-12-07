@@ -38,6 +38,11 @@ public class InputRecorder : MonoBehaviour
                 StopAndSpawn();
         }
 
+        if (Input.GetKeyDown(KeyCode.K))
+        {
+            CloneManager.Instance.RemoveOldest();
+        }
+
 
         if (!isRecording) return;
 
@@ -114,7 +119,7 @@ public class InputRecorder : MonoBehaviour
 
         Vector3 spawnPos = spawnAtOrigin ? OriginPos : transform.position;
 
-        GameObject shadow = Instantiate(shadowPrefab, spawnPos, Quaternion.identity);
+        GameObject shadow = CloneManager.Instance.SpawnClone(spawnPos);
 
         // Ensure component exists
         ShadowReplayInput replay = shadow.GetComponent<ShadowReplayInput>();
@@ -130,7 +135,6 @@ public class InputRecorder : MonoBehaviour
 
         replay.LoadInputs(recorded);
 
-        CloneManager.Instance.RegisterClone(shadow);
 
         Debug.Log("InputRecorder: Spawned clone at " + spawnPos + " with " + recorded.Count + " frames.");
     }
@@ -143,4 +147,12 @@ public class InputRecorder : MonoBehaviour
         isRecording = false;
         sampleTimer = 0f;
     }
+    public void HardReset()
+    {
+        recorded.Clear();
+        isRecording = false;
+        sampleTimer = 0f;
+        OriginPos = Vector3.zero;
+    }
+
 }

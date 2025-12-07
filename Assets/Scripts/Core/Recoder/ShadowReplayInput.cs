@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using System.Collections.Generic;
 
@@ -14,13 +15,30 @@ public class ShadowReplayInput : MonoBehaviour
     void Awake()
     {
         controller = GetComponent<PlayerController>();
-        controller.IsClone = true;  
+        controller.IsClone = true;
+    }
+
+    private void OnEnable()
+    {
+        ResetClone();
+    }
+
+    public void ResetClone()
+    {
+        inputs = null;
+        index = 0;
+        timer = 0f;
+        enabled = true;
+
+        controller.cloneInput = new PlayerInputData();
     }
 
     public void LoadInputs(List<PlayerInputData> list)
     {
         inputs = new List<PlayerInputData>(list);
         index = 0;
+        timer = 0f;
+        enabled = true;
     }
 
     void Update()
@@ -41,7 +59,6 @@ public class ShadowReplayInput : MonoBehaviour
             else
             {
                 enabled = false;
-
                 controller.cloneInput = new PlayerInputData();
             }
         }

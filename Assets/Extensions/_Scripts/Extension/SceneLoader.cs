@@ -12,11 +12,14 @@ namespace _Scripts.Extension
     public class SceneLoader : Singleton<SceneLoader>
     {
         [SerializeField] private Slider loading;
+        [SerializeField] private TextMeshProUGUI loadingText;
+        [SerializeField] private GameObject tapToPlayButton;
+
         public float timer;
-        
+
         private string sceneName
         {
-            get => PlayerPrefs.GetString("sceneName", "GamePlay");
+            get => PlayerPrefs.GetString("sceneName", "Gameplay");
             set => PlayerPrefs.SetString("sceneName", value);
         }
 
@@ -28,6 +31,9 @@ namespace _Scripts.Extension
 
         private void Start()
         {
+            if (tapToPlayButton)
+                tapToPlayButton.SetActive(false);   
+
             IntoGamePlay();
         }
 
@@ -36,60 +42,49 @@ namespace _Scripts.Extension
             LoadScene(sceneName);
         }
 
-        public void LoadSceneAdditive(string sceneName, Action onLoad = null, Action onDone = null)
-        {
-            var scene = SceneManager.LoadSceneAsync(sceneName, LoadSceneMode.Additive);
-            if (scene != null)
-            {
-                scene.allowSceneActivation = false;
-                
-                do
-                {
-                    //nothing
-                } while (scene.progress < 0.9f);
-                
-                onLoad?.Invoke();
-                DOVirtual.DelayedCall(1f, () =>
-                {
-                    scene.allowSceneActivation = true;
-                    onDone?.Invoke();
-                });
-            }
-        }
-
-        public void UnLoadSceneAdditive(string sceneName, Action onSceneUnload = null, Action onSceneUnloaded = null)
-        {
-            if (string.IsNullOrEmpty(sceneName)) return;
-            
-            var scene = SceneManager.GetSceneByName(sceneName);
-
-            if (scene.isLoaded)
-            {
-                SceneManager.UnloadSceneAsync(sceneName);
-
-                SceneManager.sceneUnloaded += s => { Resources.UnloadUnusedAssets(); };
-
-                onSceneUnload?.Invoke();
-
-                DOVirtual.DelayedCall(1f, () => { onSceneUnloaded?.Invoke(); });
-            }
-        }
-
         public void LoadScene(string sceneName)
         {
             var scene = SceneManager.LoadSceneAsync(sceneName);
             if (scene != null)
-            { 
+            {
                 scene.allowSceneActivation = false;
 
-                loading.DOValue(1f, timer).SetEase(Ease.Linear).OnComplete(delegate
-                {
-                    AnimationTranslate.Instance.StartLoading(delegate
+                loading.value = 0f;
+                if (loadingText != null)
+                    loadingText.text = "0%";
+
+                loading
+                    .DOValue(1f, timer)
+                    .SetEase(Ease.Linear)
+                    .OnUpdate(() =>
                     {
-                        AnimationTranslate.Instance.DisplayLoading(false);
-                        scene.allowSceneActivation = true;
+                        if (loadingText != null)
+                        {
+                            float percent = loading.value * 100f;
+                            loadingText.text = $"{percent:0}%";
+                        }
+                    })
+                    .OnComplete(() =>
+                    {
+                        if (loadingText != null)
+                            loadingText.text = "100%";
+
+                        loading.transform.parent.gameObject.SetActive(false);
+
+                        if (tapToPlayButton != null)
+                            tapToPlayButton.SetActive(true);
+
+                        tapToPlayButton.GetComponent<Button>().onClick.AddListener(() =>
+                        {
+                            tapToPlayButton.SetActive(false);
+
+                            AnimationTranslate.Instance.StartLoading(() =>
+                            {
+                                AnimationTranslate.Instance.DisplayLoading(false);
+                                scene.allowSceneActivation = true;
+                            });
+                        });
                     });
-                });
             }
         }
     }

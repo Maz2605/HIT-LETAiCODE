@@ -1,37 +1,38 @@
 using UnityEngine;
 using System.Collections.Generic;
 using DesignPattern;
+using pooling;
 
 public class CloneManager : Singleton<CloneManager>
 {
-    public int maxClones = 3;  
-    private int spawnRemaining;
+    public GameObject clonePrefab;    
+    public int maxClones = 3;
 
-    List<GameObject> clones = new List<GameObject>();
+    private int spawnRemaining;
+    private List<GameObject> clones = new List<GameObject>();
+
     protected override void Awake()
     {
         base.Awake();
         spawnRemaining = maxClones;
     }
 
-    void Update()
-    {
-        if (Input.GetKeyDown(KeyCode.K))
-        {
-            RemoveOldest();
-        }
-    }
-
-
     public bool CanSpawn()
     {
         return spawnRemaining > 0;
     }
 
-    public void RegisterClone(GameObject clone)
+    public GameObject SpawnClone(Vector3 position)
     {
+        if (!CanSpawn())
+            return null;
+
+        GameObject clone = PoolingManager.Spawn(clonePrefab, position, Quaternion.identity);
+
         clones.Add(clone);
         spawnRemaining--;
+
+        return clone;
     }
 
     public void RemoveOldest()
@@ -40,21 +41,39 @@ public class CloneManager : Singleton<CloneManager>
 
         GameObject oldest = clones[0];
         clones.RemoveAt(0);
-        Destroy(oldest);
 
-        spawnRemaining++; 
+        PoolingManager.Despawn(oldest);
+        spawnRemaining++;
     }
+
     public void RemoveCloneExact(GameObject clone)
     {
-        if (clones.Contains(clone))
+        if (clones.Remove(clone))
         {
-            clones.Remove(clone);
+            PoolingManager.Despawn(clone);
+            spawnRemaining++;
         }
     }
 
     public void DestroyCloneDeath(GameObject clone)
     {
-        Destroy(clone);
-        spawnRemaining++;
+        if (clones.Remove(clone))
+        {
+            PoolingManager.Despawn(clone);
+            spawnRemaining++;
+        }
+    }
+
+
+    public void ResetAllClones()
+    {
+        foreach (var c in clones)
+        {
+            if (c != null)
+                PoolingManager.Despawn(c);
+        }
+
+        clones.Clear();
+        spawnRemaining = maxClones;
     }
 }

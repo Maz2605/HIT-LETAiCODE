@@ -95,7 +95,7 @@ public class PlayerController : MonoBehaviour
     void Update()
     {
         if (_isDeath) return;
-
+        
         HandleRunStopDelay();
         HandleDashTimers();
         HandleAutoFlipAfterWallJump();
@@ -216,12 +216,13 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    private float amountDash = 1;
     private void TryDash()
     {
-        if (!isGrounded) return;
         if (isDashing) return;
         if (dashCooldownTimer > 0) return;
-
+        if(amountDash <= 0) return;
+        amountDash -= 1;
         isDashing = true;
         dashTimer = dashDuration;
         dashCooldownTimer = dashCooldown;
@@ -369,6 +370,10 @@ public class PlayerController : MonoBehaviour
 
         isTouchingWall =
             Physics2D.Raycast(wallCheck.position, transform.right, wallCheckDistance, whatIsGround);
+        if (isGrounded)
+        {
+            amountDash = 1;
+        }
     }
 
     // ============================================================
@@ -439,4 +444,63 @@ public class PlayerController : MonoBehaviour
         if (wallCheck != null)
             Gizmos.DrawLine(wallCheck.position, wallCheck.position + transform.right * wallCheckDistance);
     }
+    public void ResetPlayerFull()
+    {
+        _isDeath = false;
+
+        rb.bodyType = RigidbodyType2D.Dynamic;
+        rb.velocity = Vector2.zero;
+        rb.angularVelocity = 0;
+
+        transform.position = Vector3.zero;
+
+        anim.SetBool("Death", false);
+        anim.Play("Idle", 0, 0);
+
+        isDashing = false;
+        isWallSliding = false;
+        justWallJumped = false;
+
+        amountOfJumpsLeft = amountOfJumps;
+
+        canFlip = true;
+    }
+    public void ResetCloneState()
+    {
+        _isDeath = false;
+        isDashing = false;
+        justWallJumped = false;
+        isWallSliding = false;
+        isTouchingWall = false;
+        isGrounded = false;
+        canFlip = true;
+
+        movementInputDirection = 0;
+        isRunning = false;
+        isWalkingOrRunning = false;
+
+        amountOfJumpsLeft = amountOfJumps;
+
+        dashTimer = 0f;
+        dashCooldownTimer = 0f;
+
+        rb.bodyType = RigidbodyType2D.Dynamic;
+        rb.velocity = Vector2.zero;
+        rb.angularVelocity = 0f;
+
+        facingDirection = 1;
+        isFacingRight = true;
+        transform.rotation = Quaternion.identity;
+
+        anim.SetBool("Death", false);
+        anim.SetBool("IsWallSliding", false);
+        anim.SetBool("IsGounded", false);
+        anim.SetBool("IsDashing", false);
+        anim.SetBool("IsWalkOrRun", false);
+        anim.Play("Idle", 0, 0);
+
+        cloneInput = new PlayerInputData();
+    }
+
+
 }

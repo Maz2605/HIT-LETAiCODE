@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class LevelSelectUI : MonoBehaviour
+public class LevelSelectUI : BaseUIInstant
 {
     public LevelInfoPopup infoPopup;
     public LevelButton[] levelButtons;
