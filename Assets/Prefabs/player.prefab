@@ -144,7 +144,7 @@ MonoBehaviour:
     dashPressed: 0
   stopRunDelay: 0.1
   dashSpeed: 8
-  dashDuration: 0.5
+  dashDuration: 0.3
   dashCooldown: 0.4
   rb: {fileID: 6930914495186317008}
   anim: {fileID: 7489519922620400458}
@@ -159,9 +159,9 @@ MonoBehaviour:
   wallCheckDistance: 0.15
   wallSlideSpeed: 0.5
   movementForceInAir: 10
-  airDragMultiplier: 0.95
+  airDragMultiplier: 1
   wallHopForce: 10
-  wallJumpForce: 12
+  wallJumpForce: 8
   wallHopDirection: {x: 1, y: 0.5}
   wallJumpDirection: {x: 1, y: 2}
   groundCheck: {fileID: 3544482949528606537}
